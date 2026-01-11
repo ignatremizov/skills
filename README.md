@@ -35,6 +35,37 @@ $skill-installer install https://github.com/openai/skills/tree/main/skills/.expe
 
 After installing a skill, restart Codex to pick up new skills.
 
+## Suggested workflows by skill
+
+Local skills in `.local/` are repo-specific. Use them as overrides or add them to `~/.codex/skills` when you want the local behavior to take precedence.
+
+### Local (`.local/`)
+
+- `git-commit-style`: Draft commit messages after staging; summarize intent, behavioral impact, and testing in a repo-aligned format.
+- `athena-skill`: Run supervisor-led requirements → design → tasks for new features; writes `.athena/specs/<feature>/`.
+- `spec-kit-skill`: Use constitution-driven spec workflows via the `specify` CLI; manages `.specify/` phases.
+- `claude-skill`: Hand off implementation or review to Claude Code headless mode; requires the `claude` CLI.
+- `autonomous-skill`: Execute long-running, multi-session tasks with progress tracking in `.autonomous/`.
+
+### System (`skills/.system/`)
+
+- `skill-creator`: Design or refine a skill with clear triggers, workflows, and helper assets.
+- `skill-installer`: Install curated or remote skills into `~/.codex/skills` for repeatable use.
+
+### Curated (`skills/.curated/`)
+
+- `gh-address-comments`: Triage PR review threads, apply fixes, and resolve comments using `gh`.
+- `gh-fix-ci`: Pull failing GitHub Actions logs, summarize failures, then propose and implement a fix plan.
+- `notion-knowledge-capture`: Turn conversations into structured Notion pages (decisions, FAQs, how-tos).
+- `notion-meeting-intelligence`: Prepare meeting agendas and pre-reads from Notion context.
+- `notion-research-documentation`: Synthesize Notion research into briefs or comparison docs with citations.
+- `notion-spec-to-implementation`: Convert Notion specs into implementation tasks with progress tracking.
+
+### Experimental (`skills/.experimental/`)
+
+- `create-plan`: Provide a concise, single plan when the user explicitly asks for one.
+- `linear`: Read and update Linear issues and projects through the Linear MCP workflow.
+
 ## License
 
 The license of an individual skill can be found directly inside the skill's directory inside the `LICENSE.txt` file.
