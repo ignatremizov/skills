@@ -43,7 +43,15 @@ Local skills in `.local/` are repo-specific. Use them as overrides or add them t
 
 - `git-commit-style`: Draft commit messages after staging; summarize intent, behavioral impact, and testing in a repo-aligned format.
 - `athena-skill`: Run supervisor-led requirements → design → tasks for new features; writes `.athena/specs/<feature>/`.
-- `spec-kit-skill`: Use constitution-driven spec workflows via the `specify` CLI; manages `.specify/` phases.
+- `spec-kit-skill`: Supervisor orchestration for Spec-Kit phases; spawns workers with explicit phase skills.
+- `spec-kit-constitution-skill`: Draft or update `.specify/memory/constitution.md`.
+- `spec-kit-specify-skill`: Create or update `.specify/specs/<feature>/spec.md`.
+- `spec-kit-clarify-skill`: Generate clarifying questions and update `spec.md`.
+- `spec-kit-plan-skill`: Produce the plan bundle (`plan.md`, `data-model.md`, `contracts/`, `research.md`, `quickstart.md`).
+- `spec-kit-checklist-skill`: Generate requirements-quality checklists in `checklists/`.
+- `spec-kit-tasks-skill`: Generate `tasks.md` from the plan bundle.
+- `spec-kit-analyze-skill`: Cross-artifact consistency report before implementation.
+- `spec-kit-implement-skill`: Execute `tasks.md` and update task checkboxes.
 - `claude-skill`: Hand off implementation or review to Claude Code headless mode; requires the `claude` CLI.
 - `autonomous-skill`: Execute long-running, multi-session tasks with progress tracking in `.autonomous/`.
 
