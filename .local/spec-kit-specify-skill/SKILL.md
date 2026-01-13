@@ -1,6 +1,6 @@
 ---
 name: spec-kit-specify-skill
-description: Create or update .specify/specs/NNN-feature-name/spec.md using the Spec-Kit spec template. Use when drafting a feature spec or linking to Linear.
+description: Create or update specs/NNN-feature-name/spec.md using the Spec-Kit spec template. Use when drafting a feature spec or linking to Linear.
 ---
 
 # Spec-Kit Specify Phase
@@ -15,7 +15,7 @@ Produce `spec.md` for the current feature.
 
 ## Steps
 
-1. Ensure the feature directory exists at `.specify/specs/NNN-feature-name/`.
+1. Ensure the feature directory exists at `specs/NNN-feature-name/`.
    - If missing, ask the supervisor to create it or run `.specify/scripts/bash/create-new-feature.sh --json "<feature description>"`.
 2. Read `.specify/templates/spec-template.md` and `.specify/templates/commands/specify.md`.
 3. Write `spec.md`:
@@ -26,7 +26,7 @@ Produce `spec.md` for the current feature.
 
 ## Output
 
-- `.specify/specs/NNN-feature-name/spec.md`
+- `specs/NNN-feature-name/spec.md`
 
 ## Example prompts
 
