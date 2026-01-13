@@ -41,7 +41,7 @@ check_initialization() {
     return 2
   fi
 
-  if [ ! -d ".specify/scripts/bash" ] || [ ! -d ".specify/templates" ]; then
+  if [ ! -f ".specify/scripts/bash/detect-phase.sh" ] || [ ! -d ".specify/templates" ]; then
     return 2
   fi
 
@@ -50,7 +50,7 @@ check_initialization() {
 
 # Function to get latest feature
 get_latest_feature() {
-  ls -d .specify/specs/[0-9]* 2>/dev/null | sort -V | tail -1
+  ls -d specs/[0-9]* 2>/dev/null | sort -V | tail -1
 }
 
 # Function to detect phase for a feature
@@ -137,8 +137,8 @@ generate_report() {
       if [ ! -f ".specify/memory/constitution.md" ]; then
         echo -e "  ${YELLOW}Missing:${NC} .specify/memory/constitution.md"
       fi
-      if [ ! -d ".specify/scripts/bash" ]; then
-        echo -e "  ${YELLOW}Missing:${NC} .specify/scripts/bash/"
+      if [ ! -f ".specify/scripts/bash/detect-phase.sh" ]; then
+        echo -e "  ${YELLOW}Missing:${NC} .specify/scripts/bash/detect-phase.sh"
       fi
       if [ ! -d ".specify/templates" ]; then
         echo -e "  ${YELLOW}Missing:${NC} .specify/templates/"
@@ -164,7 +164,7 @@ generate_report() {
 
   # Features
   local features
-  features=$(ls -d .specify/specs/[0-9]* 2>/dev/null | sort -V || echo "")
+  features=$(ls -d specs/[0-9]* 2>/dev/null | sort -V || echo "")
 
   if [ -z "$features" ]; then
     echo -e "${YELLOW}No features found${NC}"
