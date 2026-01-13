@@ -15,7 +15,7 @@ Create or update `.specify/memory/constitution.md` using the Spec-Kit template.
 ## Steps
 
 1. Read `.specify/memory/constitution.md` (template or existing).
-2. Read `.specify/templates/commands/constitution.md` for required sections.
+2. Read `.codex/prompts/speckit.constitution.md` for required sections.
 3. Write or update the constitution. Ensure "Sources of Truth" references:
    - Linear issue(s) or requirements tracker
    - `AGENTS.md` path for engineering standards

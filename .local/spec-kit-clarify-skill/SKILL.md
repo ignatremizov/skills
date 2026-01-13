@@ -15,7 +15,7 @@ Resolve ambiguities before planning.
 ## Steps
 
 1. Read `spec.md` and `.specify/memory/constitution.md`.
-2. Use `.specify/templates/commands/clarify.md` to craft up to 5 targeted questions.
+2. Use `.codex/prompts/speckit.clarify.md` to craft up to 5 targeted questions.
 3. If answers are available in context, update `spec.md` under "## Clarifications".
 4. If answers are missing, return the questions and stop.
 5. If Linear is the source of truth, mirror decisions back to the Linear issue.

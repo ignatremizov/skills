@@ -17,7 +17,7 @@ Produce `spec.md` for the current feature.
 
 1. Ensure the feature directory exists at `specs/NNN-feature-name/`.
    - If missing, ask the supervisor to create it or run `.specify/scripts/bash/create-new-feature.sh --json "<feature description>"`.
-2. Read `.specify/templates/spec-template.md` and `.specify/templates/commands/specify.md`.
+2. Read `.specify/templates/spec-template.md` and `.codex/prompts/speckit.specify.md`.
 3. Write `spec.md`:
    - If Linear is the source of truth, keep the spec lightweight and link to the issue(s).
    - Include user stories, acceptance scenarios, requirements, and success criteria.
