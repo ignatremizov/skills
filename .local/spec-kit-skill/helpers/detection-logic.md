@@ -109,7 +109,7 @@ check_initialization() {
   fi
 
   # Must have scripts
-  if [ ! -d ".specify/scripts/bash" ]; then
+  if [ ! -f ".specify/scripts/bash/detect-phase.sh" ]; then
     echo "partially_initialized"
     return 2
   fi
@@ -139,7 +139,6 @@ specify init <project-name> --ai codex
 # Options:
 # --force: Overwrite non-empty directories
 # --no-git: Skip Git initialization
-# --script ps: Generate PowerShell scripts (Windows)
 ```
 
 ## 3. Feature Detection
@@ -150,13 +149,13 @@ Identify existing features and latest feature.
 
 ```bash
 list_features() {
-  if [ ! -d ".specify/specs" ]; then
+  if [ ! -d "specs" ]; then
     echo "No features found"
     return 1
   fi
 
   # List numbered feature directories
-  ls -d .specify/specs/[0-9]* 2>/dev/null | sort -V
+  ls -d specs/[0-9]* 2>/dev/null | sort -V
 }
 ```
 
@@ -164,7 +163,7 @@ list_features() {
 
 ```bash
 get_latest_feature() {
-  LATEST=$(ls -d .specify/specs/[0-9]* 2>/dev/null | sort -V | tail -1)
+  LATEST=$(ls -d specs/[0-9]* 2>/dev/null | sort -V | tail -1)
 
   if [ -z "$LATEST" ]; then
     echo "No features found"

@@ -10,11 +10,11 @@ Use this skill as the supervisor (Athena) to coordinate Spec-Kit phases. It does
 ## Quick Start
 
 1. Ensure `.specify/` exists (`specify init . --ai codex` if missing).
-2. Run the detect-phase helper from this skill (`scripts/detect-phase.sh --json`) with cwd set to the repo root.
+2. Run `.specify/scripts/bash/detect-phase.sh --json` from the repo root.
 3. Spawn a worker agent with the matching phase skill and a concise, phase-scoped prompt.
 4. Attach the skill explicitly as a `UserInput::Skill` item.
 
-**Storage**: `.specify/specs/NNN-feature-name/` for feature artifacts and `.specify/memory/` for governance.
+**Storage**: `specs/NNN-feature-name/` for feature artifacts and `.specify/memory/` for governance.
 
 ## Skill Injection Rule (Non-Interactive)
 
@@ -26,7 +26,7 @@ Skills only activate when sent as explicit inputs.
 ## Phase Skill Map
 
 - Constitution -> `spec-kit-constitution-skill` -> `.specify/memory/constitution.md`
-- Specify -> `spec-kit-specify-skill` -> `.specify/specs/NNN-feature-name/spec.md`
+- Specify -> `spec-kit-specify-skill` -> `specs/NNN-feature-name/spec.md`
 - Clarify -> `spec-kit-clarify-skill` -> spec clarifications updated
 - Plan -> `spec-kit-plan-skill` -> `plan.md`, `data-model.md`, `contracts/`, `research.md`, `quickstart.md`
 - Checklist (optional) -> `spec-kit-checklist-skill` -> `checklists/<domain>.md`
