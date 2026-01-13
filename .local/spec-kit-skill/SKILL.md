@@ -9,10 +9,16 @@ Use this skill as the supervisor (Athena) to coordinate Spec-Kit phases. It does
 
 ## Quick Start
 
-1. Ensure `.specify/` exists (`specify init . --ai codex` if missing).
+1. Ensure `.specify/` exists (`specify init . --ai codex` if missing). Init merges into the repo and may overwrite `.specify/*` and agent prompts; use `--force` only if overwriting `.specify/` is acceptable.
 2. Run `.specify/scripts/bash/detect-phase.sh --json` from the repo root.
 3. Spawn a worker agent with the matching phase skill and a concise, phase-scoped prompt.
 4. Attach the skill explicitly as a `UserInput::Skill` item.
+
+**Init outputs**:
+- `.specify/memory/constitution.md`
+- `.specify/scripts/<bash|powershell>/` (plus any root scripts)
+- `.specify/templates/` (spec/plan/tasks/checklist/agent-file templates)
+- `.codex/prompts/speckit.*.md` command prompts (Codex)
 
 **Storage**: `specs/NNN-feature-name/` for feature artifacts and `.specify/memory/` for governance.
 
