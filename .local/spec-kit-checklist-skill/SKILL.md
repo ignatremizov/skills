@@ -16,7 +16,7 @@ Create a requirements-quality checklist for the current feature. This is not an 
 ## Steps
 
 1. Run `.specify/scripts/bash/check-prerequisites.sh --json` and capture `FEATURE_DIR` and `AVAILABLE_DOCS`.
-2. Read `.specify/templates/commands/checklist.md` for the checklist rules.
+2. Read `.codex/prompts/speckit.checklist.md` for the checklist rules.
 3. Read `.specify/templates/checklist-template.md` for format.
 4. Load only relevant context from `spec.md` (and `plan.md`/`tasks.md` if present).
 5. Create `FEATURE_DIR/checklists/` if missing.

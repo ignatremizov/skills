@@ -14,7 +14,7 @@ Generate a dependency-ordered task list.
 ## Steps
 
 1. Read `plan.md`, `data-model.md`, `contracts/`, `research.md`, and `quickstart.md`.
-2. Use `.specify/templates/commands/tasks.md` and `.specify/templates/tasks-template.md`.
+2. Use `.codex/prompts/speckit.tasks.md` and `.specify/templates/tasks-template.md`.
 3. Create `tasks.md` with small, testable tasks and explicit dependencies.
 4. Ensure each task maps back to requirements or Linear acceptance criteria.
 5. Stop and report the task file path and any gaps.

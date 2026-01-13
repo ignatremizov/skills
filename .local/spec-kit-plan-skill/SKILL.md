@@ -15,7 +15,7 @@ Produce the technical plan bundle.
 ## Steps
 
 1. Run `.specify/scripts/bash/setup-plan.sh --json` and capture the paths it outputs.
-2. Read `.specify/templates/commands/plan.md` and `.specify/templates/plan-template.md`.
+2. Read `.codex/prompts/speckit.plan.md` and `.specify/templates/plan-template.md`.
 3. Write `plan.md`, filling all sections and documenting tradeoffs.
 4. Create supporting artifacts:
    - `research.md` for unknowns and decisions
