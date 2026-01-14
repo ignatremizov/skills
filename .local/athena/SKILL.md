@@ -1,5 +1,5 @@
 ---
-name: athena-skill
+name: athena
 description: Supervisor-led feature development workflow from idea to implementation. Creates requirements (EARS format), design documents, and implementation task lists with explicit approval gates. Use when creating feature specs, requirements documents, design documents, or implementation plans. Triggered by "athena" or references to .athena/specs/ directory.
 ---
 
