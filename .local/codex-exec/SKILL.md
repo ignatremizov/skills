@@ -40,7 +40,14 @@ Use `codex-exec` (wrapper for the `codex exec` CLI) to run short-lived sub-agent
 
 - Set cwd: `codex-exec -C /path/to/repo "prompt..."`.
 - Add writable roots: `codex-exec --add-dir /path "prompt..."`.
+- Select model: `codex-exec -m gpt-5.2-codex "prompt..."` (code) or `codex-exec -m gpt-5-2 "prompt..."` (docs).
+- Set reasoning effort: `codex-exec -c model_reasoning_effort=high "prompt..."`.
 - Override config: `codex-exec -c key=value "prompt..."`.
+
+## Model reference
+
+- If you run the app server, the `model/list` endpoint returns available models (see `~/code/codex/codex-rs/app-server/README.md`).
+- For a static reference, check the built-in presets in `~/code/codex/codex-rs/core/models.json` (may lag behind the service).
 
 ## When to spawn vs resume
 
