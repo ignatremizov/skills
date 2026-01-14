@@ -42,7 +42,7 @@ Local skills in `.local/` are repo-specific. Use them as overrides or add them t
 ### Local (`.local/`)
 
 - `git-commit-style`: Draft commit messages after staging; summarize intent, behavioral impact, and testing in a repo-aligned format.
-- `athena-skill`: Run supervisor-led requirements → design → tasks for new features; writes `.athena/specs/<feature>/`.
+- `athena`: Run supervisor-led requirements → design → tasks for new features; writes `.athena/specs/<feature>/`.
 - `spec-kit-skill`: Supervisor orchestration for Spec-Kit phases; spawns workers with explicit phase skills.
 - `spec-kit-constitution-skill`: Draft or update `.specify/memory/constitution.md`.
 - `spec-kit-specify-skill`: Create or update `.specify/specs/<feature>/spec.md`.
