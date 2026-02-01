@@ -38,6 +38,37 @@ $skill-installer install https://github.com/openai/skills/tree/main/skills/.expe
 
 After installing a skill, restart Codex to pick up new skills.
 
+
+## Codex compaction prompt (autocompact.md)
+
+This repo also includes a Codex compaction prompt file at `autocompact.md`. It controls how Codex writes a high-fidelity checkpoint during `/compact` and auto-compaction.
+
+### Install
+
+1) Symlink the prompt into `~/.codex/docs/` (recommended):
+
+```sh
+mkdir -p ~/.codex/docs
+ln -sfn ~/code/skills/autocompact.md ~/.codex/docs/autocompact.md
+```
+
+2) Point Codex at it via `~/.codex/config.toml`:
+
+```toml
+# Use an absolute path if `~` expansion does not work in your build.
+experimental_compact_prompt_file = "~/.codex/docs/autocompact.md"
+
+[features]
+# Required for Codex to use your local prompt file (remote compaction typically ignores it).
+remote_compaction = false
+```
+
+3) Restart Codex.
+
+### Notes
+
+- If you keep `remote_compaction = true`, Codex may ignore `experimental_compact_prompt_file`.
+
 ## Suggested workflows by skill
 
 Local skills in `.local/` are repo-specific. Use them as overrides or add them to `~/.codex/skills` when you want the local behavior to take precedence.
