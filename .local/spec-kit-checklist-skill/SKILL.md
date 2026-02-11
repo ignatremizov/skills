@@ -5,25 +5,49 @@ description: Generate requirements-quality checklists for a feature using the Sp
 
 # Spec-Kit Checklist Phase
 
-Create a requirements-quality checklist for the current feature. This is not an implementation test; it validates the clarity, completeness, and consistency of requirements.
+Generate a requirements-quality checklist (unit tests for requirements writing).
+
+## Inputs
+
+- Domain/focus requested by supervisor/user (`$ARGUMENTS` equivalent)
 
 ## Prerequisites
 
-- `{$HOME,.}/.specify/` exists.
-- `spec.md` exists for the feature.
-- `plan.md` and `tasks.md` are recommended if available.
+- `{$HOME,.}/.specify/` exists
+- `spec.md` exists
+- `{$HOME,.}/.specify/templates/checklist-template.md` exists
 
 ## Steps
 
-1. Run `{$HOME,.}/.specify/scripts/bash/check-prerequisites.sh --json` and capture `FEATURE_DIR` and `AVAILABLE_DOCS`.
-2. Use this `SKILL.md` checklist guidance and read `{$HOME,.}/.specify/templates/checklist-template.md` for format.
-3. Load only relevant context from `spec.md` (and `plan.md`/`tasks.md` if present).
-4. Create `FEATURE_DIR/checklists/` if missing.
-5. Write a domain checklist file (e.g., `ux.md`, `api.md`, `security.md`).
-   - Never overwrite existing content.
-   - If the file already exists, append new items or choose a new descriptive filename.
-6. Ensure each item tests requirements quality (completeness/clarity/consistency/measurability), not implementation behavior.
-7. Stop and report the checklist path, item count, focus areas, and any open questions.
+1. Resolve feature paths.
+   - Run `{$HOME,.}/.specify/scripts/bash/check-prerequisites.sh --json`.
+   - Parse `FEATURE_DIR` and `AVAILABLE_DOCS`.
+2. Load required context.
+   - Read relevant sections from `spec.md`.
+   - Optionally read `plan.md`/`tasks.md` when needed for scope context.
+3. Interpret checklist focus.
+   - Derive domain (e.g., `ux`, `api`, `security`, `operations`).
+   - Identify must-have checks from user context.
+4. Create checklist file.
+   - Create `FEATURE_DIR/checklists/` if missing.
+   - Prefer `FEATURE_DIR/checklists/<domain>.md`.
+   - If filename exists, append or choose a new descriptive filename.
+5. Generate items that test requirements quality, not implementation behavior.
+   - Dimensions: completeness, clarity, consistency, measurability, scenario coverage.
+   - Include edge cases, non-functional coverage, assumptions/dependencies.
+   - Use traceability markers: `[Spec §X.Y]`, `[Gap]`, `[Ambiguity]`, `[Conflict]`, `[Assumption]`.
+6. Enforce checklist item style.
+   - Use question-style checks against requirement quality.
+   - Avoid implementation-test phrasing (`verify`, `click`, `render`, `works`).
+   - Keep IDs sequential (`CHK001+`) and formatted by template.
+7. Stop and report.
+   - File path, item count, focus areas, unresolved questions.
+
+## Quality rules
+
+- Treat checklist as requirement QA, not software QA.
+- At least most items should include traceability references.
+- Merge near-duplicates and prioritize high-risk gaps.
 
 ## Output
 

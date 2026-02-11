@@ -5,27 +5,50 @@ description: Create or update specs/NNN-feature-name/spec.md using the Spec-Kit 
 
 # Spec-Kit Specify Phase
 
-Produce `spec.md` for the current feature.
+Create or update `spec.md` for the active feature.
 
 ## Inputs
 
-- Feature description from the supervisor
-- Constitution and `AGENTS.md`
-- Linear issue(s) if Linear is the source of truth
+- Feature request from supervisor (`$ARGUMENTS` equivalent)
+- Constitution and `AGENTS.md` context
+- Linear issue(s), when Linear is source of truth
+
+## Prerequisites
+
+- `{$HOME,.}/.specify/` is available
+- `{$HOME,.}/.specify/templates/spec-template.md` exists
 
 ## Steps
 
-1. Ensure the feature directory exists at `specs/NNN-feature-name/`.
-   - If missing, ask the supervisor to create it or run `{$HOME,.}/.specify/scripts/bash/create-new-feature.sh --json "<feature description>"`.
-2. Read `{$HOME,.}/.specify/templates/spec-template.md` and use this `SKILL.md` as the specify rubric.
-3. Ensure `spec.md` is templated:
-   - Run `../spec-kit-skill/scripts/copy-template.sh --name spec-template.md --to specs/NNN-feature-name/spec.md --root .`
-   - Use `--force` only when replacing an existing `spec.md` is intended.
-4. Write `spec.md`:
-   - If Linear is the source of truth, keep the spec lightweight and link to the issue(s).
-   - Include user stories, acceptance scenarios, requirements, and success criteria.
-5. Add or update a "## Clarifications" section placeholder.
-6. Stop and report the path and any open questions.
+1. Setup feature paths.
+   - If feature directory is unknown or missing, run:
+     - `{$HOME,.}/.specify/scripts/bash/create-new-feature.sh --json "<feature description>"`
+   - Parse JSON and capture at least:
+     - `BRANCH_NAME`
+     - `SPEC_FILE`
+   - Treat all parsed paths as absolute for downstream operations.
+2. Load context.
+   - Read `specs/constitution.md` (fallback: `.specify/memory/constitution.md` if migrating).
+   - Read `AGENTS.md` if present.
+3. Ensure `spec.md` is templated.
+   - Run:
+     - `../spec-kit-skill/scripts/copy-template.sh --name spec-template.md --to specs/NNN-feature-name/spec.md --root .`
+   - Use `--force` only when replacement is explicitly intended.
+4. Write `spec.md` using template structure and this rubric.
+   - Include prioritized, independently testable user stories.
+   - Include acceptance scenarios and measurable success criteria.
+   - Include requirements, edge cases, and assumptions.
+   - If Linear is source of truth, keep spec concise and link issue(s) explicitly.
+5. Clarifications placeholder.
+   - Ensure `## Clarifications` exists even if initially empty.
+6. Stop and report.
+   - Return spec path, feature name/branch, and open questions.
+
+## Quality rules
+
+- Do not invent requirements not grounded in request/context.
+- Keep requirements testable and avoid vague adjectives without criteria.
+- Preserve section ordering from template unless user asked otherwise.
 
 ## Output
 
@@ -33,5 +56,5 @@ Produce `spec.md` for the current feature.
 
 ## Example prompts
 
-- "Create spec.md for 004-user-invite and link ZOL-123 as the source of truth."
+- "Create spec.md for 004-user-invite and link ZOL-123 as source of truth."
 - "Draft a tech-agnostic spec for ZOL-456 using the Spec-Kit template."

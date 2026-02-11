@@ -5,27 +5,57 @@ description: Generate the Spec-Kit plan bundle (plan.md, data-model.md, contract
 
 # Spec-Kit Plan Phase
 
-Produce the technical plan bundle.
+Produce the technical plan bundle for the active feature.
+
+## Inputs
+
+- Planning constraints from supervisor/user (`$ARGUMENTS` equivalent)
 
 ## Prerequisites
 
-- `spec.md` is complete (or intentionally lightweight with Linear references).
-- Constitution is available.
+- `spec.md` exists and is sufficiently clear
+- Constitution is available
+- `{$HOME,.}/.specify/templates/plan-template.md` exists
 
 ## Steps
 
-1. Run `{$HOME,.}/.specify/scripts/bash/setup-plan.sh --json` and capture the paths it outputs.
-2. Read `{$HOME,.}/.specify/templates/plan-template.md` and use this `SKILL.md` as the planning rubric.
-3. Ensure `plan.md` is templated if missing/empty:
-   - Run `../spec-kit-skill/scripts/copy-template.sh --name plan-template.md --to <IMPL_PLAN from setup-plan output> --root .`
-4. Write `plan.md`, filling all sections and documenting tradeoffs.
-5. Create supporting artifacts:
-   - `research.md` for unknowns and decisions
-   - `data-model.md` for entities and relationships
-   - `contracts/` for API/interface contracts
-   - `quickstart.md` for developer setup and verification
-6. Ensure the plan references Linear issue(s) and constitution requirements.
-7. Stop and report paths, unresolved questions, and readiness for tasks.
+1. Setup plan paths.
+   - Run `{$HOME,.}/.specify/scripts/bash/setup-plan.sh --json`.
+   - Parse and keep:
+     - `FEATURE_SPEC`
+     - `IMPL_PLAN`
+     - `SPECS_DIR`
+     - `BRANCH`
+2. Load context.
+   - Read `FEATURE_SPEC`.
+   - Read `specs/constitution.md` (fallback: `.specify/memory/constitution.md` while migrating).
+   - Read plan template and this rubric.
+3. Ensure `plan.md` is templated when missing/empty.
+   - Run:
+     - `../spec-kit-skill/scripts/copy-template.sh --name plan-template.md --to <IMPL_PLAN> --root .`
+4. Fill `plan.md` completely.
+   - Technical context with explicit unknowns (`NEEDS CLARIFICATION`).
+   - Constitution check and design gates.
+   - Tradeoffs and constraints.
+5. Phase 0: research.
+   - Resolve unknowns into `research.md` with:
+     - Decision
+     - Rationale
+     - Alternatives considered
+6. Phase 1: design artifacts.
+   - Create `data-model.md` (entities, fields, relationships, state transitions).
+   - Create `contracts/` for APIs/interfaces.
+   - Create `quickstart.md` for setup and verification flow.
+7. Re-evaluate constitution alignment after design.
+   - Flag unresolved violations as blockers.
+8. Stop and report.
+   - Branch, `plan.md` path, produced artifacts, unresolved questions.
+
+## Quality rules
+
+- Do not leave unresolved core unknowns in final plan.
+- Fail fast on unjustified constitution violations.
+- Keep artifacts consistent with spec acceptance criteria and source-of-truth issue links.
 
 ## Output
 
@@ -33,5 +63,5 @@ Produce the technical plan bundle.
 
 ## Example prompts
 
-- "Generate the plan bundle for ZOL-123 from spec.md."
-- "Create plan.md, data-model.md, contracts/, research.md, and quickstart.md for ZOL-456."
+- "Generate the full plan bundle for ZOL-123 from spec.md."
+- "Create plan/design artifacts for ZOL-456 and include constitution gates."
