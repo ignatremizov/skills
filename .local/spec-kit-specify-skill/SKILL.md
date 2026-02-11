@@ -16,13 +16,16 @@ Produce `spec.md` for the current feature.
 ## Steps
 
 1. Ensure the feature directory exists at `specs/NNN-feature-name/`.
-   - If missing, ask the supervisor to create it or run `.specify/scripts/bash/create-new-feature.sh --json "<feature description>"`.
-2. Read `.specify/templates/spec-template.md` and `.codex/prompts/speckit.specify.md`.
-3. Write `spec.md`:
+   - If missing, ask the supervisor to create it or run `{$HOME,.}/.specify/scripts/bash/create-new-feature.sh --json "<feature description>"`.
+2. Read `{$HOME,.}/.specify/templates/spec-template.md` and use this `SKILL.md` as the specify rubric.
+3. Ensure `spec.md` is templated:
+   - Run `../spec-kit-skill/scripts/copy-template.sh --name spec-template.md --to specs/NNN-feature-name/spec.md --root .`
+   - Use `--force` only when replacing an existing `spec.md` is intended.
+4. Write `spec.md`:
    - If Linear is the source of truth, keep the spec lightweight and link to the issue(s).
    - Include user stories, acceptance scenarios, requirements, and success criteria.
-4. Add or update a "## Clarifications" section placeholder.
-5. Stop and report the path and any open questions.
+5. Add or update a "## Clarifications" section placeholder.
+6. Stop and report the path and any open questions.
 
 ## Output
 

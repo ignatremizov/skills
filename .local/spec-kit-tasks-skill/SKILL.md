@@ -14,10 +14,12 @@ Generate a dependency-ordered task list.
 ## Steps
 
 1. Read `plan.md`, `data-model.md`, `contracts/`, `research.md`, and `quickstart.md`.
-2. Use `.codex/prompts/speckit.tasks.md` and `.specify/templates/tasks-template.md`.
-3. Create `tasks.md` with small, testable tasks and explicit dependencies.
-4. Ensure each task maps back to requirements or Linear acceptance criteria.
-5. Stop and report the task file path and any gaps.
+2. Use `{$HOME,.}/.specify/templates/tasks-template.md` and this `SKILL.md` as the tasks rubric.
+3. Ensure `tasks.md` is templated if missing/empty:
+   - Run `../spec-kit-skill/scripts/copy-template.sh --name tasks-template.md --to specs/NNN-feature-name/tasks.md --root .`
+4. Create `tasks.md` with small, testable tasks and explicit dependencies.
+5. Ensure each task maps back to requirements or Linear acceptance criteria.
+6. Stop and report the task file path and any gaps.
 
 ## Output
 

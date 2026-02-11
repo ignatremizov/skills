@@ -5,6 +5,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+BOOTSTRAP_SCRIPT="$SCRIPT_DIR/bootstrap-assets.sh"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -32,16 +35,40 @@ detect_cli() {
 }
 
 # Function to check project initialization
+has_specify_dir() {
+  [ -d ".specify" ] || [ -d "$HOME/.specify" ]
+}
+
+has_constitution_repo() {
+  [ -f "specs/constitution.md" ]
+}
+
+has_constitution_legacy() {
+  [ -f ".specify/memory/constitution.md" ]
+}
+
+has_constitution() {
+  has_constitution_repo || has_constitution_legacy
+}
+
+has_phase_scripts() {
+  [ -f ".specify/scripts/bash/detect-phase.sh" ] || [ -f "$HOME/.specify/scripts/bash/detect-phase.sh" ]
+}
+
+has_templates() {
+  [ -d "$HOME/.specify/templates" ] || [ -d ".specify/templates" ]
+}
+
 check_initialization() {
-  if [ ! -d ".specify" ]; then
+  if ! has_specify_dir; then
     return 1
   fi
 
-  if [ ! -f ".specify/memory/constitution.md" ]; then
+  if ! has_constitution; then
     return 2
   fi
 
-  if [ ! -f ".specify/scripts/bash/detect-phase.sh" ] || [ ! -d ".specify/templates" ]; then
+  if ! has_phase_scripts || ! has_templates; then
     return 2
   fi
 
@@ -50,7 +77,46 @@ check_initialization() {
 
 # Function to get latest feature
 get_latest_feature() {
-  ls -d specs/[0-9]* 2>/dev/null | sort -V | tail -1
+  if [ ! -d "specs" ]; then
+    return 0
+  fi
+  ls -d specs/[0-9]* 2>/dev/null | sort -V | tail -1 || true
+}
+
+# Function to map current git branch prefix to a feature directory
+get_feature_from_branch() {
+  if [ ! -d "specs" ]; then
+    return 0
+  fi
+
+  local branch=""
+  branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)
+  if [[ ! "$branch" =~ ^([0-9]{3})- ]]; then
+    return 0
+  fi
+
+  local prefix="${BASH_REMATCH[1]}"
+  local matches=()
+  local dir
+  for dir in specs/"$prefix"-*; do
+    if [ -d "$dir" ]; then
+      matches+=("$dir")
+    fi
+  done
+
+  if [ "${#matches[@]}" -eq 1 ]; then
+    echo "${matches[0]}"
+  fi
+}
+
+resolve_feature_dir() {
+  local from_branch=""
+  from_branch=$(get_feature_from_branch)
+  if [ -n "$from_branch" ]; then
+    echo "$from_branch"
+    return 0
+  fi
+  get_latest_feature
 }
 
 # Function to detect phase for a feature
@@ -58,7 +124,7 @@ detect_phase() {
   local feature_dir="$1"
 
   # Phase 1: Constitution
-  if [ ! -f ".specify/memory/constitution.md" ]; then
+  if ! has_constitution; then
     echo "constitution"
     return 0
   fi
@@ -134,14 +200,19 @@ generate_report() {
     local init_status=$?
     if [ "$init_status" -eq 2 ]; then
       echo -e "${YELLOW}⚠${NC} Project partially initialized"
-      if [ ! -f ".specify/memory/constitution.md" ]; then
-        echo -e "  ${YELLOW}Missing:${NC} .specify/memory/constitution.md"
+      if ! has_constitution; then
+        echo -e "  ${YELLOW}Missing:${NC} constitution (specs/constitution.md)"
       fi
-      if [ ! -f ".specify/scripts/bash/detect-phase.sh" ]; then
-        echo -e "  ${YELLOW}Missing:${NC} .specify/scripts/bash/detect-phase.sh"
+      if ! has_phase_scripts; then
+        echo -e "  ${YELLOW}Missing:${NC} detect script ({\$HOME,.}/.specify/scripts/bash/detect-phase.sh)"
       fi
-      if [ ! -d ".specify/templates" ]; then
-        echo -e "  ${YELLOW}Missing:${NC} .specify/templates/"
+      if ! has_templates; then
+        echo -e "  ${YELLOW}Missing:${NC} templates ({\$HOME,.}/.specify/templates)"
+      fi
+      if [ -x "$BOOTSTRAP_SCRIPT" ]; then
+        echo -e "  ${YELLOW}Bootstrap:${NC} $BOOTSTRAP_SCRIPT --ensure templates"
+      else
+        echo -e "  ${YELLOW}Bootstrap:${NC} create \$HOME/.specify/templates"
       fi
       echo -e "  ${YELLOW}Next:${NC} Re-run init: specify init . --ai codex --force"
     else
@@ -153,8 +224,11 @@ generate_report() {
   echo
 
   # Constitution Check
-  if [ -f ".specify/memory/constitution.md" ]; then
+  if has_constitution_repo; then
     echo -e "${GREEN}✓${NC} Constitution present"
+  elif has_constitution_legacy; then
+    echo -e "${YELLOW}⚠${NC} Constitution present at legacy path .specify/memory/constitution.md"
+    echo -e "  ${YELLOW}Recommendation:${NC} migrate to specs/constitution.md"
   else
     echo -e "${YELLOW}⚠${NC} Constitution missing"
     echo -e "  ${YELLOW}Next:${NC} Create constitution (Phase 1)"
@@ -169,7 +243,7 @@ generate_report() {
   if [ -z "$features" ]; then
     echo -e "${YELLOW}No features found${NC}"
     echo -e "  ${YELLOW}Next:${NC} Create first feature"
-    echo -e "  ${BLUE}Command:${NC} .specify/scripts/bash/create-new-feature.sh --json 'feature-name'"
+    echo -e "  ${BLUE}Command:${NC} {\$HOME,.}/.specify/scripts/bash/create-new-feature.sh --json 'feature-name'"
     return 0
   fi
 
@@ -200,13 +274,13 @@ generate_report() {
   echo
 
   # Next Action
-  local latest
-  latest=$(get_latest_feature)
-  if [ -n "$latest" ]; then
+  local selected
+  selected=$(resolve_feature_dir)
+  if [ -n "$selected" ]; then
     local current_phase
-    current_phase=$(detect_phase "$latest")
+    current_phase=$(detect_phase "$selected")
     local feature_name
-    feature_name=$(basename "$latest" | sed 's/^[0-9]\{3\}-//')
+    feature_name=$(basename "$selected" | sed 's/^[0-9]\{3\}-//')
     echo -e "${BLUE}Next Action:${NC} Continue with ${YELLOW}$current_phase${NC} phase for feature '${GREEN}$feature_name${NC}'"
   fi
 }
@@ -264,18 +338,42 @@ main() {
 
     local project_initialized="false"
     check_initialization && project_initialized="true"
+    local templates_available="false"
+    has_templates && templates_available="true"
+
+    local selected
+    selected=$(resolve_feature_dir)
+    local selected_phase="none"
+    if [ -n "$selected" ]; then
+      selected_phase=$(detect_phase "$selected")
+    fi
 
     local latest
     latest=$(get_latest_feature)
-    local current_phase="none"
+    local latest_phase="none"
     if [ -n "$latest" ]; then
-      current_phase=$(detect_phase "$latest")
+      latest_phase=$(detect_phase "$latest")
+    fi
+
+    # Backward-compatible alias for selected feature phase.
+    local current_phase="$selected_phase"
+
+    local constitution_path=""
+    if has_constitution_repo; then
+      constitution_path="specs/constitution.md"
+    elif has_constitution_legacy; then
+      constitution_path=".specify/memory/constitution.md"
     fi
 
     echo "{"
     echo "  \"cli_installed\": $cli_installed,"
     echo "  \"project_initialized\": $project_initialized,"
+    echo "  \"templates_available\": $templates_available,"
+    echo "  \"constitution_path\": \"$constitution_path\","
     echo "  \"latest_feature\": \"$latest\","
+    echo "  \"latest_phase\": \"$latest_phase\","
+    echo "  \"selected_feature\": \"$selected\","
+    echo "  \"selected_phase\": \"$selected_phase\","
     echo "  \"current_phase\": \"$current_phase\""
     echo "}"
   else

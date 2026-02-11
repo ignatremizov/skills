@@ -1,21 +1,21 @@
 ---
 name: spec-kit-constitution-skill
-description: Draft or update .specify/memory/constitution.md for Spec-Kit. Use when establishing principles and sources of truth.
+description: Draft or update specs/constitution.md for Spec-Kit. Use when establishing principles and sources of truth.
 ---
 
 # Spec-Kit Constitution Phase
 
-Create or update `.specify/memory/constitution.md` using the Spec-Kit template.
+Create or update `specs/constitution.md` using the Spec-Kit template.
 
 ## Prerequisites
 
-- `.specify/` exists (created via `specify init . --ai codex`).
+- `specs/` exists.
 - Review `AGENTS.md` and any existing standards.
 
 ## Steps
 
-1. Read `.specify/memory/constitution.md` (template or existing).
-2. Read `.codex/prompts/speckit.constitution.md` for required sections.
+1. Read `specs/constitution.md` (template or existing).
+2. Use this `SKILL.md` for required sections and keep sources-of-truth explicit.
 3. Write or update the constitution. Ensure "Sources of Truth" references:
    - Linear issue(s) or requirements tracker
    - `AGENTS.md` path for engineering standards
@@ -23,7 +23,7 @@ Create or update `.specify/memory/constitution.md` using the Spec-Kit template.
 
 ## Output
 
-- `.specify/memory/constitution.md`
+- `specs/constitution.md`
 
 ## Example prompts
 

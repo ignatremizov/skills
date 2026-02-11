@@ -96,26 +96,26 @@ Check if current project is initialized with spec-kit.
 
 ```bash
 check_initialization() {
-  # Must have .specify directory
-  if [ ! -d ".specify" ]; then
+  # Must have .specify directory (repo-local or home-level)
+  if [ ! -d ".specify" ] && [ ! -d "$HOME/.specify" ]; then
     echo "not_initialized"
     return 1
   fi
 
-  # Must have constitution
-  if [ ! -f ".specify/memory/constitution.md" ]; then
+  # Must have constitution (preferred: specs/constitution.md, legacy fallback allowed)
+  if [ ! -f "specs/constitution.md" ] && [ ! -f ".specify/memory/constitution.md" ]; then
     echo "partially_initialized"
     return 2
   fi
 
-  # Must have scripts
-  if [ ! -f ".specify/scripts/bash/detect-phase.sh" ]; then
+  # Must have scripts (repo-local or home-level)
+  if [ ! -f ".specify/scripts/bash/detect-phase.sh" ] && [ ! -f "$HOME/.specify/scripts/bash/detect-phase.sh" ]; then
     echo "partially_initialized"
     return 2
   fi
 
-  # Must have templates
-  if [ ! -d ".specify/templates" ]; then
+  # Must have templates (shared or repo-local override)
+  if [ ! -d "$HOME/.specify/templates" ] && [ ! -d ".specify/templates" ]; then
     echo "partially_initialized"
     return 2
   fi
@@ -208,7 +208,7 @@ detect_phase() {
   FEATURE_DIR="$1"
 
   # Phase 1: Constitution
-  if [ ! -f ".specify/memory/constitution.md" ]; then
+  if [ ! -f "specs/constitution.md" ] && [ ! -f ".specify/memory/constitution.md" ]; then
     echo "constitution"
     return 0
   fi
@@ -257,7 +257,7 @@ detect_phase() {
 
 ```bash
 has_constitution() {
-  [ -f ".specify/memory/constitution.md" ]
+  [ -f "specs/constitution.md" ] || [ -f ".specify/memory/constitution.md" ]
 }
 ```
 
@@ -447,7 +447,7 @@ LATEST=$(get_latest_feature)
 if [ -z "$LATEST" ]; then
   if has_constitution; then
     echo "Ready to create first feature"
-    echo "Run: .specify/scripts/bash/create-new-feature.sh --json 'feature-name'"
+    echo "Run: {$HOME,.}/.specify/scripts/bash/create-new-feature.sh --json 'feature-name'"
   else
     echo "Need to create constitution first"
   fi
