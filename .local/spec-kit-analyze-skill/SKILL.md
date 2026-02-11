@@ -5,27 +5,56 @@ description: Run a cross-artifact consistency check across spec.md, plan.md, and
 
 # Spec-Kit Analyze Phase
 
-Perform a read-only consistency check.
+Perform a read-only cross-artifact consistency and quality analysis.
+
+## Inputs
+
+- Analysis scope/focus from supervisor/user (`$ARGUMENTS` equivalent)
 
 ## Prerequisites
 
-- `spec.md`, `plan.md`, and `tasks.md` exist.
+- `spec.md`, `plan.md`, and `tasks.md` exist for active feature
+
+## Operating constraints
+
+- Strictly read-only: do not modify files.
+- Constitution is authoritative; conflicts are always critical.
 
 ## Steps
 
-1. Read `spec.md`, `plan.md`, `tasks.md`, and the constitution.
-2. Use this `SKILL.md` as the rubric and run a direct cross-artifact consistency check.
-3. Produce a prioritized report:
-   - Critical issues first
-   - Warnings second
-   - Recommendations last
-4. For each issue, propose the artifact to update.
+1. Resolve analysis paths.
+   - Run `{$HOME,.}/.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks`.
+   - Parse `FEATURE_DIR` and `AVAILABLE_DOCS`.
+2. Load core artifacts.
+   - `spec.md`, `plan.md`, `tasks.md`
+   - `specs/constitution.md` (fallback: `.specify/memory/constitution.md` while migrating)
+3. Analyze alignment dimensions.
+   - Requirement coverage and ambiguity
+   - Plan-to-spec consistency
+   - Task-to-plan/spec traceability
+   - Sequencing/dependency risks
+   - Non-functional requirement coverage
+   - Contradictions/duplication/drift
+4. Classify findings by severity.
+   - Critical: blockers, constitution conflicts, missing core coverage
+   - Warning: moderate risk or ambiguity
+   - Recommendation: quality improvements
+5. Provide remediation mapping.
+   - For each finding: impacted artifact and concrete correction direction.
+6. Stop and report.
+   - Prioritized findings with rationale and suggested fix order.
+
+## Quality rules
+
+- Evidence-based findings only; no speculative claims.
+- Keep findings actionable and artifact-specific.
+- If no issues: explicitly state that and mention residual risk areas.
 
 ## Output
 
-- Analysis report (returned to supervisor)
+- Analysis report for supervisor/user
 
 ## Example prompts
 
-- "Analyze spec/plan/tasks for ZOL-123 and report critical gaps."
+- "Analyze spec/plan/tasks for ZOL-123 and report critical gaps first."
 - "Check constitution alignment for ZOL-456 before implementation."

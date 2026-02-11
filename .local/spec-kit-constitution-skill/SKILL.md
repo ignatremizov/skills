@@ -5,21 +5,55 @@ description: Draft or update specs/constitution.md for Spec-Kit. Use when establ
 
 # Spec-Kit Constitution Phase
 
-Create or update `specs/constitution.md` using the Spec-Kit template.
+Create or update project governance in `specs/constitution.md`.
+
+## Inputs
+
+- Constitution changes from supervisor/user (`$ARGUMENTS` equivalent)
 
 ## Prerequisites
 
-- `specs/` exists.
-- Review `AGENTS.md` and any existing standards.
+- `specs/` exists
+- Constitution template or existing constitution is available
 
 ## Steps
 
-1. Read `specs/constitution.md` (template or existing).
-2. Use this `SKILL.md` for required sections and keep sources-of-truth explicit.
-3. Write or update the constitution. Ensure "Sources of Truth" references:
-   - Linear issue(s) or requirements tracker
-   - `AGENTS.md` path for engineering standards
-4. Stop and report the updated path and any missing info.
+1. Load current constitution source.
+   - Preferred: `specs/constitution.md`
+   - Fallback for migration: `.specify/memory/constitution.md`
+2. Identify and resolve placeholders.
+   - Replace all unresolved template tokens with concrete values.
+   - If unknown, add explicit TODO with rationale.
+3. Apply versioning and governance updates.
+   - Use semantic version bump rules:
+     - MAJOR: breaking governance/principle change
+     - MINOR: new/expanded principle
+     - PATCH: clarifications/wording
+   - Keep dates in `YYYY-MM-DD`.
+4. Ensure principle quality.
+   - Principles must be declarative, testable, and non-ambiguous.
+   - Sources of truth must explicitly reference:
+     - requirements tracker (e.g., Linear)
+     - `AGENTS.md` for engineering standards
+5. Consistency propagation review.
+   - Validate alignment with `{$HOME,.}/.specify/templates/spec-template.md`.
+   - Validate alignment with `{$HOME,.}/.specify/templates/plan-template.md`.
+   - Validate alignment with `{$HOME,.}/.specify/templates/tasks-template.md`.
+   - Flag any required follow-up edits.
+6. Add sync impact report comment at top.
+   - Version old -> new
+   - Modified/added/removed sections
+   - Template sync status
+   - Deferred TODOs
+7. Write constitution to `specs/constitution.md`.
+8. Stop and report.
+   - New version and rationale.
+   - Follow-up actions/files.
+
+## Quality rules
+
+- No unexplained bracket placeholders remain.
+- Avoid vague language; prefer explicit MUST/SHOULD semantics with rationale.
 
 ## Output
 
@@ -27,5 +61,5 @@ Create or update `specs/constitution.md` using the Spec-Kit template.
 
 ## Example prompts
 
-- "Draft or update the constitution for ZOL-123 and reference AGENTS.md as a source of truth."
-- "Refresh the Sources of Truth section for ZOL-456."
+- "Draft or update constitution for ZOL-123 and align sources of truth."
+- "Amend governance and bump version with rationale for ZOL-456."

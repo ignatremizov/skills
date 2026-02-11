@@ -5,21 +5,50 @@ description: Produce tasks.md from the plan bundle. Use after plan.md and suppor
 
 # Spec-Kit Tasks Phase
 
-Generate a dependency-ordered task list.
+Generate an actionable, dependency-ordered `tasks.md`.
+
+## Inputs
+
+- Tasking constraints from supervisor/user (`$ARGUMENTS` equivalent)
 
 ## Prerequisites
 
-- `plan.md` and supporting artifacts exist.
+- `plan.md` exists
+- Supporting artifacts are available where applicable (`data-model.md`, `contracts/`, `research.md`, `quickstart.md`)
 
 ## Steps
 
-1. Read `plan.md`, `data-model.md`, `contracts/`, `research.md`, and `quickstart.md`.
-2. Use `{$HOME,.}/.specify/templates/tasks-template.md` and this `SKILL.md` as the tasks rubric.
-3. Ensure `tasks.md` is templated if missing/empty:
-   - Run `../spec-kit-skill/scripts/copy-template.sh --name tasks-template.md --to specs/NNN-feature-name/tasks.md --root .`
-4. Create `tasks.md` with small, testable tasks and explicit dependencies.
-5. Ensure each task maps back to requirements or Linear acceptance criteria.
-6. Stop and report the task file path and any gaps.
+1. Resolve feature paths.
+   - Run `{$HOME,.}/.specify/scripts/bash/check-prerequisites.sh --json`.
+   - Parse `FEATURE_DIR` and `AVAILABLE_DOCS`.
+2. Load design context.
+   - Required: `spec.md`, `plan.md`
+   - Optional: `data-model.md`, `contracts/`, `research.md`, `quickstart.md`
+3. Ensure `tasks.md` is templated if missing/empty.
+   - Run:
+     - `../spec-kit-skill/scripts/copy-template.sh --name tasks-template.md --to specs/NNN-feature-name/tasks.md --root .`
+4. Generate tasks organized by user story priority.
+   - Setup phase
+   - Foundational phase
+   - One phase per user story (P1, P2, ...)
+   - Final polish/cross-cutting phase
+5. Enforce strict task format for every task line.
+   - `- [ ] T### [P?] [US#?] Description with file path`
+   - `[P]` only for safe parallel tasks.
+   - `[US#]` required for user-story phase tasks only.
+6. Ensure traceability and executability.
+   - Map tasks to requirements or Linear acceptance criteria.
+   - Include dependencies and parallel opportunities.
+   - Include independent test criteria per story.
+   - Add tests only when explicitly requested by spec/user.
+7. Stop and report.
+   - Task file path, total task count, per-story coverage, identified gaps.
+
+## Quality rules
+
+- Tasks must be specific enough for direct execution without extra context.
+- Avoid mixing unrelated files in parallel tasks.
+- Keep MVP path explicit (typically first story slice).
 
 ## Output
 
@@ -27,5 +56,5 @@ Generate a dependency-ordered task list.
 
 ## Example prompts
 
-- "Break the plan into tasks for ZOL-123 and write tasks.md."
-- "Generate tasks mapped to ZOL-456 acceptance criteria."
+- "Break the plan into executable tasks for ZOL-123."
+- "Generate tasks mapped to ZOL-456 acceptance criteria with dependency ordering."
