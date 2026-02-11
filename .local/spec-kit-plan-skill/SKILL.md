@@ -14,16 +14,18 @@ Produce the technical plan bundle.
 
 ## Steps
 
-1. Run `.specify/scripts/bash/setup-plan.sh --json` and capture the paths it outputs.
-2. Read `.codex/prompts/speckit.plan.md` and `.specify/templates/plan-template.md`.
-3. Write `plan.md`, filling all sections and documenting tradeoffs.
-4. Create supporting artifacts:
+1. Run `{$HOME,.}/.specify/scripts/bash/setup-plan.sh --json` and capture the paths it outputs.
+2. Read `{$HOME,.}/.specify/templates/plan-template.md` and use this `SKILL.md` as the planning rubric.
+3. Ensure `plan.md` is templated if missing/empty:
+   - Run `../spec-kit-skill/scripts/copy-template.sh --name plan-template.md --to <IMPL_PLAN from setup-plan output> --root .`
+4. Write `plan.md`, filling all sections and documenting tradeoffs.
+5. Create supporting artifacts:
    - `research.md` for unknowns and decisions
    - `data-model.md` for entities and relationships
    - `contracts/` for API/interface contracts
    - `quickstart.md` for developer setup and verification
-5. Ensure the plan references Linear issue(s) and constitution requirements.
-6. Stop and report paths, unresolved questions, and readiness for tasks.
+6. Ensure the plan references Linear issue(s) and constitution requirements.
+7. Stop and report paths, unresolved questions, and readiness for tasks.
 
 ## Output
 

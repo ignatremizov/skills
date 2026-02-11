@@ -9,18 +9,70 @@ Use this skill as the supervisor (Athena) to coordinate Spec-Kit phases. It does
 
 ## Quick Start
 
-1. Ensure `.specify/` exists (`specify init . --ai codex` if missing). Init merges into the repo and may overwrite `.specify/*` and agent prompts; use `--force` only if overwriting `.specify/` is acceptable.
-2. Run `.specify/scripts/bash/detect-phase.sh --json` from the repo root.
-3. Spawn a worker agent with the matching phase skill and a concise, phase-scoped prompt.
-4. Attach the skill explicitly as a `UserInput::Skill` item.
+1. Ensure `{$HOME,.}/.specify/` exists (`specify init . --ai codex` if missing). Init merges into the repo and may overwrite `.specify/*`; use `--force` only if overwriting repo `.specify/` is acceptable.
+2. Run `{$HOME,.}/.specify/scripts/bash/detect-phase.sh --json` from the repo root.
+3. Ensure workflow assets exist:
+   - Templates in `$HOME/.specify/templates/` (see "Bootstrap Templates")
+4. Spawn a worker agent with the matching phase skill and a concise, phase-scoped prompt.
+5. Attach the skill explicitly as a `UserInput::Skill` item.
+
+## Bootstrap Templates
+
+Use `scripts/bootstrap-assets.sh` to ensure template availability.
+
+- Default target root is `$HOME` (shared template bootstrap).
+- Use `--root .` to bootstrap templates for the current repository.
+- The script manages `<root>/.specify/templates/` only.
+- If `<root>/.specify/templates/` already exists, managed templates are overwritten.
+- If templates are missing, they are created from known sources (or stubs as fallback).
+- To copy a template directly into a feature artifact file, use:
+  - `scripts/copy-template.sh --name <template-file> --to <target-file> --root .`
+
+Examples:
+
+- Shared templates: `scripts/bootstrap-assets.sh --ensure templates`
+- Repo templates: `scripts/bootstrap-assets.sh --root . --ensure templates`
+
+## Scripts
+
+### `scripts/detect-phase.sh`
+
+- Purpose: detect Spec-Kit readiness and current phase.
+- Typical usage:
+  - `scripts/detect-phase.sh --json`
+  - `scripts/detect-phase.sh --feature specs/001-some-feature --json`
+- JSON output contract includes:
+  - `cli_installed`
+  - `project_initialized`
+  - `templates_available`
+  - `constitution_path`
+  - `latest_feature`
+  - `latest_phase`
+  - `selected_feature`
+  - `selected_phase`
+  - `current_phase`
+  - `current_phase` is an alias for `selected_phase` (backward compatibility).
+
+### `scripts/bootstrap-assets.sh`
+
+- Purpose: ensure required templates exist for phase workers.
+- Contract and usage: see "Bootstrap Templates".
+
+### `scripts/copy-template.sh`
+
+- Purpose: copy one template file into a concrete feature artifact file.
+- Typical usage:
+  - `scripts/copy-template.sh --name spec-template.md --to specs/001-feature/spec.md --root .`
+- Behavior contract:
+  - source preference: `$HOME/.specify/templates` first, repo `.specify/templates` second
+  - skips non-empty targets unless `--force` is provided
 
 **Init outputs**:
-- `.specify/memory/constitution.md`
-- `.specify/scripts/<bash|powershell>/` (plus any root scripts)
-- `.specify/templates/` (spec/plan/tasks/checklist/agent-file templates)
-- `.codex/prompts/speckit.*.md` command prompts (Codex)
+- `specs/constitution.md`
+- `{$HOME,.}/.specify/scripts/<bash|powershell>/` (plus any root scripts)
+- `{$HOME,.}/.specify/templates/` (spec/plan/tasks/checklist/agent-file templates)
 
-**Storage**: `specs/NNN-feature-name/` for feature artifacts and `.specify/memory/` for governance.
+**Storage**: `specs/NNN-feature-name/` for feature artifacts and `specs/constitution.md` for governance.
 
 ## Skill Injection Rule (Non-Interactive)
 
@@ -31,7 +83,7 @@ Skills only activate when sent as explicit inputs.
 
 ## Phase Skill Map
 
-- Constitution -> `spec-kit-constitution-skill` -> `.specify/memory/constitution.md`
+- Constitution -> `spec-kit-constitution-skill` -> `specs/constitution.md`
 - Specify -> `spec-kit-specify-skill` -> `specs/NNN-feature-name/spec.md`
 - Clarify -> `spec-kit-clarify-skill` -> spec clarifications updated
 - Plan -> `spec-kit-plan-skill` -> `plan.md`, `data-model.md`, `contracts/`, `research.md`, `quickstart.md`
@@ -47,6 +99,17 @@ Skills only activate when sent as explicit inputs.
 3. Spawn a worker agent and inject the matching phase skill.
 4. Optionally run the checklist phase after plan for requirements-quality gating.
 5. Review output and proceed or re-run the phase.
+
+## Orchestration Protocol (Required)
+
+1. Keep the supervisor read-only for phase selection and gating.
+2. Before spawning workers, ensure templates exist (see "Bootstrap Templates").
+3. Spawn exactly one phase worker at a time with explicit `UserInput::Skill` injection.
+4. Require worker outputs to include:
+   - touched paths
+   - unresolved questions
+   - next unblocked phase
+5. Do not advance phase if required artifacts are missing.
 
 ## Sources of Truth
 

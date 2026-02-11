@@ -14,7 +14,7 @@ Perform a read-only consistency check.
 ## Steps
 
 1. Read `spec.md`, `plan.md`, `tasks.md`, and the constitution.
-2. Use `.codex/prompts/speckit.analyze.md` as the rubric.
+2. Use this `SKILL.md` as the rubric and run a direct cross-artifact consistency check.
 3. Produce a prioritized report:
    - Critical issues first
    - Warnings second
