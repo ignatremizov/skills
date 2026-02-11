@@ -127,6 +127,49 @@ write_template_stub() {
 ## Clarifications
 TEMPLATE
       ;;
+    constitution-template.md)
+      cat >"$target" <<'TEMPLATE'
+# Project Constitution
+
+## Core Principles
+
+## Standards
+
+## Governance
+TEMPLATE
+      ;;
+    agent-file-template.md)
+      cat >"$target" <<'TEMPLATE'
+# [PROJECT NAME] Development Guidelines
+
+Auto-generated from all feature plans. Last updated: [DATE]
+
+## Active Technologies
+
+[EXTRACTED FROM ALL PLAN.MD FILES]
+
+## Project Structure
+
+```text
+[ACTUAL STRUCTURE FROM PLANS]
+```
+
+## Commands
+
+[ONLY COMMANDS FOR ACTIVE TECHNOLOGIES]
+
+## Code Style
+
+[LANGUAGE-SPECIFIC, ONLY FOR LANGUAGES IN USE]
+
+## Recent Changes
+
+[LAST 3 FEATURES AND WHAT THEY ADDED]
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->
+TEMPLATE
+      ;;
     plan-template.md)
       cat >"$target" <<'TEMPLATE'
 # Implementation Plan: [FEATURE]
@@ -192,6 +235,8 @@ bootstrap_templates() {
     plan-template.md
     tasks-template.md
     checklist-template.md
+    constitution-template.md
+    agent-file-template.md
   )
 
   local source_root="${SPEC_KIT_SOURCE_DIR:-}"
