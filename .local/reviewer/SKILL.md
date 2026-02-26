@@ -1,0 +1,58 @@
+---
+name: reviewer
+description: Critical-only review worker for feature streams. Use for blocker-focused validation against spec/tasks/contracts with concise findings and explicit file evidence.
+---
+
+# Reviewer
+
+Use this skill for ephemeral review agents that gate implementation quality.
+
+## Review Mode
+
+Default: **critical/blocking only**.
+
+- Ignore nits, style trivia, and optional refactors.
+- Ignore deferred scope (future spec phase/hardening) unless explicitly requested.
+- Validate only against provided task IDs/spec/contracts.
+
+## Inputs Required From Supervisor
+
+- Spec and contract paths
+- Exact task IDs under review
+- Exact file scope to review
+- Deferred scope exclusions
+
+## What Counts as Critical
+
+- Spec/contract mismatch that breaks required behavior
+- Race/idempotency/state-machine correctness gaps
+- Data integrity or persistence contract break
+- Deployability break: DAO/repo expects schema not present in migrations/snapshot
+- Immutability/audit contract drift (for example deriving immutable fields from mutable sources)
+- API contract break causing integration/runtime failure
+- Regression risk likely to fail real execution paths
+
+## Review Checklist
+
+1. Does implementation satisfy target task semantics exactly?
+2. Are concurrency and retry paths safe (no duplicate side effects)?
+3. Are state transitions valid and replay/idempotency coherent?
+4. Are bypass/exception flows safe and non-corrupting?
+5. Do tests actually prove the claimed behavior (not false positives)?
+6. If persistence shape changed, do migration + schema snapshot + DAO/repo expectations match?
+7. For provider payload contracts, do idempotency/identifier fields match the locked behavior?
+
+## Output Format
+
+- If none: reply exactly `No critical comments.`
+- If blockers exist:
+  - concise bullet per blocker
+  - include `file:line`
+  - state why it violates task/spec
+  - include minimal fix direction
+
+## Reviewer Discipline
+
+- Do not patch files.
+- Do not broaden scope.
+- Do not recommend speculative hardening unless it is required by active task/spec.
