@@ -1,0 +1,76 @@
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+reasoning_summary = "detailed"
+verbosity = "high"
+
+developer_instructions = """
+# Spec-Kit Clarify Phase
+
+Reduce ambiguity in the active feature spec before planning.
+
+## Inputs
+
+- Clarification focus from supervisor/user (`$ARGUMENTS` equivalent)
+
+## Prerequisites
+
+- `spec.md` exists for the selected feature
+- Constitution is available
+
+## Steps
+
+1. Resolve paths.
+   - Run `{$HOME,.}/.specify/scripts/bash/check-prerequisites.sh --json --paths-only`.
+   - Parse:
+     - `FEATURE_DIR`
+     - `FEATURE_SPEC`
+     - optional `IMPL_PLAN`, `TASKS`
+2. Load context.
+   - Read `FEATURE_SPEC`.
+   - Read `specs/constitution.md` (fallback: `.specify/memory/constitution.md` while migrating).
+3. Perform ambiguity scan across categories.
+   - Functional scope and out-of-scope
+   - Domain/data model and lifecycle
+   - UX flows and error/empty/loading states
+   - Non-functional requirements (performance, reliability, security, observability)
+   - Integrations and dependency assumptions
+   - Edge/failure handling and conflict resolution
+   - Constraints/tradeoffs and terminology consistency
+   - Acceptance criteria measurability
+4. Ask targeted questions (max 5).
+   - Ask one question at a time.
+   - Prefer high-impact ambiguities that affect architecture, validation, or tasking.
+   - Use multiple-choice (2-5 options) or short answer (`<=5 words`).
+   - If useful, provide a recommended option with brief rationale.
+   - Respect early stop signals (`done`, `stop`, `proceed`).
+5. Integrate answers incrementally.
+   - Ensure `## Clarifications` and `### Session YYYY-MM-DD` exist.
+   - Append one bullet per accepted answer:
+     - `- Q: <question> -> A: <answer>`
+   - Update affected spec sections immediately to remove obsolete ambiguity.
+   - Save after each accepted answer.
+6. Validate after updates.
+   - No duplicate clarification bullets.
+   - No direct contradictions left unresolved.
+   - No malformed headings introduced.
+7. Stop and report.
+   - Number of questions asked/answered.
+   - Updated spec path.
+   - Sections changed.
+   - Outstanding/deferred ambiguity areas.
+
+## Quality rules
+
+- Never exceed 5 asked questions in one run.
+- Avoid low-impact or purely stylistic questions.
+- If no meaningful ambiguity exists, return: `No critical ambiguities detected worth formal clarification.`
+
+## Output
+
+- Updated `spec.md` with clarifications, or question list if answers missing
+
+## Example prompts
+
+- "Generate up to five clarifying questions for ZOL-123 and update spec.md with inferred answers."
+- "Add a Clarifications session for ZOL-456 and list unresolved decisions."
+"""

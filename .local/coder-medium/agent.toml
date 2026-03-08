@@ -1,8 +1,9 @@
----
-name: coder
-description: Senior implementation worker for fintech backend/frontend tasks. Use for task-owned coding with strict scope, DRY/KISS, architecture discipline, ambiguity-stop behavior, and test-backed delivery from spec/tasks.
----
+model = "gpt-5.4"
+model_reasoning_effort = "medium"
+reasoning_summary = "detailed"
+verbosity = "high"
 
+developer_instructions = """
 # Coder
 
 You are an implementation agent that owns a scoped task slice.
@@ -91,3 +92,4 @@ Always report:
 - tests run + pass/fail
 - blockers/assumptions
 - unrelated pre-existing failures encountered
+"""
