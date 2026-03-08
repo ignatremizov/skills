@@ -1,0 +1,95 @@
+# Suggested snippets for ~/.codex/config.toml or project .codex/config.toml
+# Replace `<SKILLS_CHECKOUT>` with the absolute path to your local `skills` repo checkout.
+# Example: `/Users/alice/code/skills`
+
+[agents.athena_supervisor]
+description = "High-reasoning orchestration supervisor (Athena persona)"
+config_file = "<SKILLS_CHECKOUT>/.local/athena-supervisor/agent.toml"
+
+[agents.audit_supervisor]
+description = "Supervisor for multi-agent read-only audit loops"
+config_file = "<SKILLS_CHECKOUT>/.local/audit-supervisor/agent.toml"
+
+[agents.audit_scout_spark]
+description = "Fast producer for narrow-shard defect discovery"
+config_file = "<SKILLS_CHECKOUT>/.local/audit-scout-spark/agent.toml"
+
+[agents.audit_validator]
+description = "Strict consumer for validating or rejecting candidate findings"
+config_file = "<SKILLS_CHECKOUT>/.local/audit-validator/agent.toml"
+
+[agents.audit_deduper]
+description = "Canonical defect deduper and merger"
+config_file = "<SKILLS_CHECKOUT>/.local/audit-deduper/agent.toml"
+
+[agents.coder_low]
+description = "Coder preset: low reasoning"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-low/agent.toml"
+
+[agents.coder_spec]
+description = "Spec-task implementation worker"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-spec/agent.toml"
+
+[agents.coder_pr]
+description = "ghc-driven PR review worker"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-pr/agent.toml"
+
+[agents.coder_medium]
+description = "Coder preset: medium reasoning"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-medium/agent.toml"
+
+[agents.coder_high]
+description = "Coder preset: high reasoning"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-high/agent.toml"
+
+[agents.coder_xhigh]
+description = "Coder preset: extra high rigor profile"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-xhigh/agent.toml"
+
+[agents.coder_prototype]
+description = "Prototyping coder preset using codex spark"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-prototype-spark/agent.toml"
+
+[agents.frontend_qa]
+description = "Frontend QA/browser automation using Playwright skill"
+config_file = "<SKILLS_CHECKOUT>/.local/playwright/agents/frontend-qa.toml"
+
+[agents.explorer_local]
+description = "Explorer preset for focused code discovery"
+config_file = "<SKILLS_CHECKOUT>/.local/explorer/agent.toml"
+
+[agents.awaiter_local]
+description = "Awaiter preset for long-running command monitoring"
+config_file = "<SKILLS_CHECKOUT>/.local/awaiter/agent.toml"
+
+[agents.spec_kit_specify]
+description = "Spec-Kit specify phase worker"
+config_file = "<SKILLS_CHECKOUT>/.local/spec-kit-specify-skill/agent.toml"
+
+[agents.spec_kit_clarify]
+description = "Spec-Kit clarify phase worker"
+config_file = "<SKILLS_CHECKOUT>/.local/spec-kit-clarify-skill/agent.toml"
+
+[agents.spec_kit_plan]
+description = "Spec-Kit plan phase worker"
+config_file = "<SKILLS_CHECKOUT>/.local/spec-kit-plan-skill/agent.toml"
+
+[agents.spec_kit_tasks]
+description = "Spec-Kit tasks phase worker"
+config_file = "<SKILLS_CHECKOUT>/.local/spec-kit-tasks-skill/agent.toml"
+
+[agents.spec_kit_checklist]
+description = "Spec-Kit checklist phase worker"
+config_file = "<SKILLS_CHECKOUT>/.local/spec-kit-checklist-skill/agent.toml"
+
+[agents.spec_kit_analyze]
+description = "Spec-Kit analyze phase worker"
+config_file = "<SKILLS_CHECKOUT>/.local/spec-kit-analyze-skill/agent.toml"
+
+[agents.supervisor_review_loop]
+description = "Supervisor orchestration loop (existing skill folder)"
+config_file = "<SKILLS_CHECKOUT>/.local/supervisor-review-loop/agent.toml"
+
+[agents.reviewer]
+description = "Default reviewer preset"
+config_file = "<SKILLS_CHECKOUT>/.local/reviewer/agent.toml"

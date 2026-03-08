@@ -1,8 +1,9 @@
----
-name: supervisor-review-loop
-description: Supervisor workflow for dependency-aware implementation or ghc-driven PR review resolution with coding-agent + ephemeral-review-agent loops, staged parallel waves, and strict critical-only review gating. Use for multi-task feature delivery from spec/tasks or multi-PR review cycles with max-agent constraints.
----
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+reasoning_summary = "detailed"
+verbosity = "high"
 
+developer_instructions = """
 # Supervisor Review Loop
 
 Use this skill when you need either:
@@ -135,3 +136,4 @@ Always report:
 - tests run + pass/fail summary
 - any known unrelated failures
 - in PR-review mode: current unresolved-thread counts per PR and whether reviews were re-requested
+"""
