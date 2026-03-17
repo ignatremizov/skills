@@ -86,6 +86,49 @@ Local skills in `.local/` are repo-specific. Use them as overrides or add them t
 - `claude-skill`: Hand off implementation or review to Claude Code headless mode; requires the `claude` CLI.
 - `autonomous-skill`: Execute long-running, multi-session tasks with progress tracking in `.autonomous/`.
 
+#### Hardening Workflow
+
+For non-trivial PRs, prefer a post-coder hardening phase instead of relying on one final general review pass.
+
+Default flow:
+
+1. Main implementation agent completes the feature slice.
+2. `supervisor-hardening` classifies the changed area and selects the minimum useful `coder-hardening-*` agents.
+3. Each hardening stream is validated by the base `reviewer` with area-specific additional instructions.
+4. `quality-gate-hardening` scores the relevant areas (`0-100`) and decides whether one more targeted hardening pass is still warranted.
+5. If quality-gate requests another area, run that one extra hardening stream, then re-run quality-gate.
+6. Run a final combined reviewer pass only when multiple hardening areas interacted or the supervisor wants one last integration check.
+
+Typical hardening order:
+
+- `schema`
+- `auth`
+- `idempotency`
+- `query`
+- `money`
+- `contract`
+- `source-of-truth`
+- `async-ui`
+- `a11y`
+
+Typical combinations:
+
+- backend API + migration: `schema -> contract`
+- backend state machine / reconciliation: `idempotency -> query -> money`
+- auth/recovery flow: `auth -> contract`
+- frontend data-heavy screen: `source-of-truth -> async-ui`
+- frontend custom control: `source-of-truth -> a11y`
+- transfer/balance UI: `money -> source-of-truth -> async-ui`
+
+Example invocations:
+
+- Backend PR:
+  - "Use `supervisor-hardening` on this `svc` change before PR. The diff touches a migration, a new API response shape, and a state transition. Choose the minimum useful hardening areas, run the streams, then have `quality-gate-hardening` decide whether more hardening is still needed."
+- Frontend PR:
+  - "Use `supervisor-hardening` on this `emi-frontend` diff before PR. The change adds a custom dropdown and new async data loading. Pick the right hardening agents, validate each stream with reviewer, then run `quality-gate-hardening` and stop only if its confidence is high enough."
+
+Skip the hardening workflow for trivial, tightly bounded diffs where the main coder plus a normal reviewer pass is already proportionate.
+
 ### System (`skills/.system/`)
 
 - `skill-creator`: Design or refine a skill with clear triggers, workflows, and helper assets.

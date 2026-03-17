@@ -38,6 +38,46 @@ config_file = "<SKILLS_CHECKOUT>/.local/coder-pr/agent.toml"
 description = "Coder preset: medium reasoning"
 config_file = "<SKILLS_CHECKOUT>/.local/coder-medium/agent.toml"
 
+[agents.coder_dry]
+description = "DRY/KISS/YAGNI cleanup coder"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-dry/agent.toml"
+
+[agents.coder_hardening_contract]
+description = "Post-implementation contract hardening coder"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-hardening-contract/agent.toml"
+
+[agents.coder_hardening_schema]
+description = "Post-implementation schema and migration hardening coder"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-hardening-schema/agent.toml"
+
+[agents.coder_hardening_idempotency]
+description = "Post-implementation idempotency and transaction-safety hardening coder"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-hardening-idempotency/agent.toml"
+
+[agents.coder_hardening_query]
+description = "Post-implementation query and selector hardening coder"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-hardening-query/agent.toml"
+
+[agents.coder_hardening_auth]
+description = "Post-implementation auth, privacy, and recovery hardening coder"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-hardening-auth/agent.toml"
+
+[agents.coder_hardening_async_ui]
+description = "Post-implementation async UI lifecycle hardening coder"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-hardening-async-ui/agent.toml"
+
+[agents.coder_hardening_a11y]
+description = "Post-implementation accessibility and custom-control hardening coder"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-hardening-a11y/agent.toml"
+
+[agents.coder_hardening_source_of_truth]
+description = "Post-implementation source-of-truth and duplication hardening coder"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-hardening-source-of-truth/agent.toml"
+
+[agents.coder_hardening_money]
+description = "Post-implementation money, currency, and ledger-semantics hardening coder"
+config_file = "<SKILLS_CHECKOUT>/.local/coder-hardening-money/agent.toml"
+
 [agents.coder_high]
 description = "Coder preset: high reasoning"
 config_file = "<SKILLS_CHECKOUT>/.local/coder-high/agent.toml"
@@ -86,9 +126,17 @@ config_file = "<SKILLS_CHECKOUT>/.local/spec-kit-checklist-skill/agent.toml"
 description = "Spec-Kit analyze phase worker"
 config_file = "<SKILLS_CHECKOUT>/.local/spec-kit-analyze-skill/agent.toml"
 
+[agents.supervisor_hardening]
+description = "Supervisor for dependency-aware post-implementation hardening waves"
+config_file = "<SKILLS_CHECKOUT>/.local/supervisor-hardening/agent.toml"
+
 [agents.supervisor_review_loop]
 description = "Supervisor orchestration loop (existing skill folder)"
 config_file = "<SKILLS_CHECKOUT>/.local/supervisor-review-loop/agent.toml"
+
+[agents.quality_gate_hardening]
+description = "Audit-aware post-hardening sufficiency scorer"
+config_file = "<SKILLS_CHECKOUT>/.local/quality-gate-hardening/agent.toml"
 
 [agents.reviewer]
 description = "Default reviewer preset"

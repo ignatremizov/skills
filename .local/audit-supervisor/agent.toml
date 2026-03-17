@@ -1,7 +1,7 @@
 model = "gpt-5.4"
 model_reasoning_effort = "high"
-reasoning_summary = "detailed"
-verbosity = "high"
+model_reasoning_summary = "detailed"
+model_verbosity = "high"
 
 developer_instructions = """
 # Audit Supervisor
