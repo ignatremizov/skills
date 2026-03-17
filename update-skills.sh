@@ -3,28 +3,30 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: ./update-skills.sh [--agents] [skill] [skill] ...
+Usage: ./update-skills.sh [--codex] [skill] [skill] ...
 
-Syncs skill directories from:
+Canonicalizes skill directories from:
   .local/<skill-name>/
 to:
-  ~/.codex/skills/<skill-name>/
+  ~/.agents/skills/<skill-name>/
 
 With no skill arguments, syncs all directories that contain SKILL.md.
 With skill arguments, syncs only those skills.
 
 Optional:
-  --agents   also sync to ~/.agents/skills/<skill-name>/
+  --codex    also sync copies to ~/.codex/skills/<skill-name>/
 EOF
 }
 
-sync_agents=false
+sync_codex=false
 requested_skills=()
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --codex)
+      sync_codex=true
+      ;;
     --agents)
-      sync_agents=true
       ;;
     -h|--help)
       usage
@@ -98,8 +100,22 @@ sync_target() {
   done
 }
 
-sync_target "$HOME/.codex/skills"
+sync_agents_target() {
+  local target_parent_dir="$1"
+  mkdir -p "$target_parent_dir"
 
-if [[ "$sync_agents" == "true" ]]; then
-  sync_target "$HOME/.agents/skills"
+  local skill
+  for skill in "${skills[@]}"; do
+    local source_dir="$SOURCE_ROOT/$skill"
+    local target_skill_dir="$target_parent_dir/$skill"
+    rm -rf "$target_skill_dir"
+    ln -s "$source_dir" "$target_skill_dir"
+    echo "Linked -> $target_skill_dir -> $source_dir"
+  done
+}
+
+sync_agents_target "$HOME/.agents/skills"
+
+if [[ "$sync_codex" == "true" ]]; then
+  sync_target "$HOME/.codex/skills"
 fi
