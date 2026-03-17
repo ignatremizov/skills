@@ -2,6 +2,8 @@ model = "gpt-5.4"
 model_reasoning_effort = "medium"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
+name = "coder_hardening_a11y"
+description = "Post-implementation accessibility and custom-control hardening coder"
 
 developer_instructions = """
 # Coder Hardening A11y

@@ -2,6 +2,8 @@ model = "gpt-5.4"
 model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
+name = "audit_validator"
+description = "Strict consumer for validating or rejecting candidate findings"
 
 developer_instructions = """
 # Audit Validator

@@ -2,6 +2,8 @@ model = "gpt-5.3-codex-spark"
 model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
+name = "audit_scout_spark"
+description = "Fast producer for narrow-shard defect discovery"
 
 developer_instructions = """
 # Audit Scout Spark

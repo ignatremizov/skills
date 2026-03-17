@@ -2,6 +2,8 @@ model = "gpt-5.4"
 model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
+name = "audit_supervisor"
+description = "Supervisor for multi-agent read-only audit loops"
 
 developer_instructions = """
 # Audit Supervisor

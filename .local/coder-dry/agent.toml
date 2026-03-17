@@ -2,6 +2,8 @@ model = "gpt-5.3-codex-spark"
 model_reasoning_effort = "medium"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
+name = "coder_dry"
+description = "DRY/KISS/YAGNI cleanup coder"
 
 developer_instructions = """
 # Coder Dry

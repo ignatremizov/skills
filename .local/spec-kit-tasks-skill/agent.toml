@@ -2,6 +2,8 @@ model = "gpt-5.4"
 model_reasoning_effort = "medium"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
+name = "spec_kit_tasks"
+description = "Spec-Kit tasks phase worker"
 
 developer_instructions = """
 # Spec-Kit Tasks Phase
