@@ -2,6 +2,8 @@ model = "gpt-5.3-codex-spark"
 model_reasoning_effort = "low"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
+name = "explorer_local"
+description = "Explorer preset for focused code discovery"
 
 developer_instructions = """
 # Explorer

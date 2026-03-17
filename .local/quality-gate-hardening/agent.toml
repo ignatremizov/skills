@@ -2,6 +2,8 @@ model = "gpt-5.4"
 model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
+name = "quality_gate_hardening"
+description = "Audit-aware post-hardening sufficiency scorer"
 
 developer_instructions = """
 # Quality Gate Hardening

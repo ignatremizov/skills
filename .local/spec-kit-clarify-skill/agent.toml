@@ -2,6 +2,8 @@ model = "gpt-5.4"
 model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
+name = "spec_kit_clarify"
+description = "Spec-Kit clarify phase worker"
 
 developer_instructions = """
 # Spec-Kit Clarify Phase

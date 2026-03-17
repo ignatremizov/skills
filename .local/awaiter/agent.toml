@@ -1,6 +1,8 @@
 model = "gpt-5.4"
 model_reasoning_effort = "low"
 background_terminal_max_timeout = 3600000
+name = "awaiter_local"
+description = "Awaiter preset for long-running command monitoring"
 
 developer_instructions = """
 # Awaiter

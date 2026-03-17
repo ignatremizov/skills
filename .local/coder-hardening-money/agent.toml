@@ -2,6 +2,8 @@ model = "gpt-5.4"
 model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
+name = "coder_hardening_money"
+description = "Post-implementation money, currency, and ledger-semantics hardening coder"
 
 developer_instructions = """
 # Coder Hardening Money

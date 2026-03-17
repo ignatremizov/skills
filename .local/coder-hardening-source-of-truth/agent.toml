@@ -2,6 +2,8 @@ model = "gpt-5.4"
 model_reasoning_effort = "medium"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
+name = "coder_hardening_source_of_truth"
+description = "Post-implementation source-of-truth and duplication hardening coder"
 
 developer_instructions = """
 # Coder Hardening Source Of Truth

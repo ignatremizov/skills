@@ -2,6 +2,8 @@ model = "gpt-5.4"
 model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
+name = "audit_deduper"
+description = "Canonical defect deduper and merger"
 
 developer_instructions = """
 # Audit Deduper

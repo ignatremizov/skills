@@ -2,6 +2,8 @@ model = "gpt-5.3-codex-spark"
 model_reasoning_effort = "medium"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
+name = "coder_prototype"
+description = "Prototyping coder preset using codex spark"
 
 developer_instructions = """
 # Coder
