@@ -66,9 +66,23 @@ remote_compaction = false
 
 - If you keep `remote_compaction = true`, Codex may ignore `experimental_compact_prompt_file`.
 
+## Codex agent config
+
+For custom agent roles, prefer pointing `~/.codex/config.toml` directly at the source manifests in your checkout rather than generated copies.
+
+Example:
+
+```toml
+[agents.reviewer]
+description = "Default reviewer preset"
+config_file = "<SKILLS_CHECKOUT>/.local/reviewer/agent.toml"
+```
+
+The repo includes reusable snippets in [`.local/agent_roles_config_snippets.toml`](/home/ignat/code/skills/.local/agent_roles_config_snippets.toml). Replace `<SKILLS_CHECKOUT>` with your local checkout path and paste the needed blocks into `~/.codex/config.toml`.
+
 ## Suggested workflows by skill
 
-Local skills in `.local/` are repo-specific. Use them as overrides or add them to `~/.codex/skills` when you want the local behavior to take precedence.
+Local skills in `.local/` are repo-specific. Treat them as the source of truth for custom Codex agent manifests, and expose shared skill folders to tools via `~/.agents/skills`.
 
 ### Local (`.local/`)
 
@@ -85,6 +99,12 @@ Local skills in `.local/` are repo-specific. Use them as overrides or add them t
 - `spec-kit-implement-skill`: Execute `tasks.md` and update task checkboxes.
 - `claude-skill`: Hand off implementation or review to Claude Code headless mode; requires the `claude` CLI.
 - `autonomous-skill`: Execute long-running, multi-session tasks with progress tracking in `.autonomous/`.
+
+Recommended local setup:
+
+1. Symlink the skill folders you want to share into `~/.agents/skills/`.
+2. Point `~/.codex/config.toml` agent `config_file` entries at `<SKILLS_CHECKOUT>/.local/.../agent.toml`.
+3. Use `~/.codex/skills/` only for Codex-specific installed skill trees such as `.system`, `.local`, or other private/non-repo skills.
 
 #### Hardening Workflow
 

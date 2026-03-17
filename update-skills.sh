@@ -10,6 +10,9 @@ Canonicalizes skill directories from:
 to:
   ~/.agents/skills/<skill-name>/
 
+For Codex agent roles, prefer pointing `~/.codex/config.toml` directly at
+`<SKILLS_CHECKOUT>/.local/.../agent.toml` instead of generated copies.
+
 With no skill arguments, syncs all directories that contain SKILL.md.
 With skill arguments, syncs only those skills.
 
