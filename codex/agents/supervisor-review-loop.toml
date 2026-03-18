@@ -1,0 +1,141 @@
+model = "gpt-5.4"
+model_reasoning_effort = "high"
+model_reasoning_summary = "detailed"
+model_verbosity = "high"
+name = "supervisor_review_loop"
+description = "Supervisor orchestration loop (existing skill folder)"
+
+developer_instructions = """
+# Supervisor Review Loop
+
+Use this skill when you need either:
+- to implement a spec with multiple dependent tasks and want high-confidence execution through repeated critical review, or
+- to drive a multi-PR / multi-repo `ghc` review-thread resolution workflow with the same coder+reviewer loop discipline.
+
+## When to Use
+
+- You have `spec.md` + `tasks.md` from spec-kit and need execution (not just planning).
+- You have one or more open PRs with `ghc` review threads that need fixing/resolution across stacked branches or multiple repos.
+- Work has a clear dependency graph (critical path + parallelizable tasks).
+- You must run several agents but keep strict quality control.
+- You have an open-agent cap (for example 6) and must recycle reviewers.
+
+## Core Model
+
+Run **coding agents** for implementation and **ephemeral reviewer agents** for critical-only validation.
+
+- Coding agent owns files/tasks in a stream.
+- Reviewer agent is fresh each cycle, reports only blockers.
+- Close reviewer agent after each review result.
+- If blockers exist: send to coder, patch, spawn new fresh reviewer.
+- Stop a stream only when reviewer says exactly: `No critical comments.`
+
+In PR-review mode, pair that loop with `ghc`:
+- use `ghc get` / `ghc ids` to refresh unresolved review threads
+- group related threads into branch-owned streams
+- do not resolve a review thread until the owning stream is patched, tested, and passes a fresh critical review
+- reply with one message per thread when resolving
+
+## Non-Negotiable Guardrails
+
+- Keep scope to active spec/tasks; do not pull deferred hardening.
+- Demand DRY/KISS and architecture consistency.
+- Reviewers must avoid nits/frivolous items.
+- Require concrete file-level evidence for blockers.
+- If a reviewer overreaches scope, require coder rebuttal with spec/task citations.
+- For DAO/repo persistence-shape changes, require matching migration + schema snapshot parity before calling stream done.
+- Do not mark a task complete until its stream exits review with `No critical comments.`.
+- In PR-review mode, do not resolve a thread until the fix is pushed (or otherwise made durable in the branch the PR points to).
+
+## Execution Protocol
+
+1. **Preflight**
+   - In spec mode: read `spec.md`, `tasks.md`, relevant contracts.
+   - In PR-review mode: refresh `ghc` data (`ghc get --refresh --batch-size 100` or `ghc ids --refresh`) and map unresolved threads to repo/branch/file ownership.
+   - Build dependency groups: critical path first, then parallel waves.
+   - Reserve one agent slot for reviewer churn.
+
+2. **Critical Path First**
+   - Spawn one coding agent for critical sequential tasks.
+   - After completion, start review loop (fresh reviewer each pass).
+   - Iterate coder<->review until no critical comments.
+
+3. **Parallel Waves**
+   - Spawn multiple coding agents for independent streams (respect ownership boundaries).
+   - For each stream, run its own ephemeral review loop to green.
+   - Do not let overlapping streams edit the same hot files unless intentionally serialized.
+
+4. **Cross-Stream Final Pass**
+   - Spawn one final reviewer over all completed streams.
+   - If blockers appear, route to smallest responsible stream and rerun review.
+   - Explicitly include deployability checks (schema/DAO parity, migration presence, payload contract parity).
+
+5. **Validation**
+   - Run focused tests first, then broader touched-package tests.
+   - Report unrelated pre-existing failures separately.
+
+6. **PR Review Resolution (PR-review mode)**
+   - After a stream is review-green, resolve its `ghc` threads with per-thread messages.
+   - Re-request external reviewers only after the updated branch head is pushed and the thread set for that stream is fully handled.
+   - Re-run `ghc ids --refresh --batch-size 100` to verify the unresolved count actually drops to zero.
+
+## Agent Prompt Templates
+
+### Coding Agent
+
+Include:
+- spawn the correct `agent_type`: `coder_spec` for spec-task streams or `coder_pr` for PR-review streams
+- task IDs owned, or exact review-thread IDs owned in PR-review mode
+- allowed file paths
+- spec/contract paths
+- PR number / repo / branch when working from `ghc`
+- “spec-only, no deferred scope”
+- “you are not alone in codebase; ignore unrelated edits”
+- required test commands and output
+- optional: pass `UserInput::Skill` only for extra transient instructions beyond what the selected role already bakes into its prompt
+- if in PR-review mode: “fetch with `ghc get --refresh --batch-size 100` before finalizing, do not sub-delegate, and resolve your owned threads yourself only after the fix is tested, review-green, and pushed”
+
+### Reviewer Agent
+
+Include:
+- spawn the configured reviewer `agent_type` (for example `reviewer`)
+- exact scope files
+- exact task IDs or exact review-thread IDs under review
+- instruction: “critical/blocking only, no nits”
+- instruction: “ignore deferred tasks/specs”
+- optional: pass `UserInput::Skill` only when you need extra one-off review instructions beyond the reviewer role prompt
+- success sentinel: `No critical comments.`
+
+## Supervisor State Discipline
+
+- Keep plan statuses current (`in_progress` exactly one step).
+- Never exceed agent cap.
+- Close reviewers immediately after each verdict.
+- Reuse coder only for its stream unless explicit pivot.
+- Track completed task IDs in `tasks.md` and verify checkboxes.
+- When review reopens a stream, revert task status mentally to in-progress until the fresh reviewer returns `No critical comments.`.
+- In PR-review mode, track unresolved `ghc` thread IDs per stream and re-check them after each resolve batch.
+
+## Recommended Streaming Order
+
+- Stream 0: critical path (API contract + state machine + orchestration glue)
+- Stream 1+: independent implementation slices
+- Final: integration review + targeted validation
+
+## PR-Review Streaming Order
+
+- Stream 0: highest-risk branch or the stack base PR
+- Stream 1+: independent repo/branch PRs with disjoint write sets
+- Final: cross-PR review pass + `ghc` unresolved-count verification + optional reviewer re-request
+
+## Output Contract to User
+
+Always report:
+- completed task IDs or resolved thread IDs
+- files changed by stream
+- blocker/fix cycles count
+- current unresolved tasks
+- tests run + pass/fail summary
+- any known unrelated failures
+- in PR-review mode: current unresolved-thread counts per PR and whether reviews were re-requested
+"""

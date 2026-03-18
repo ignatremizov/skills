@@ -9,11 +9,22 @@ Learn more:
 - [Create custom skills in Codex](https://developers.openai.com/codex/skills/create-skill)
 - [Agent Skills open standard](https://agentskills.io)
 
+## Source layout
+
+This checkout is a source repo, not a mirror of any runtime directory.
+
+- `skills/`: portable skill sources that can be synced into `~/.agents/skills/` and optionally `~/.codex/skills/`
+- `codex/agents/`: Codex-only agent manifests referenced directly from `~/.codex/config.toml`
+- `codex/hooks/`: Codex-only hook bundles that can be installed into a repo or user `.codex/`
+- `codex/config/`: reusable config snippets for Codex agent registration
+- `codex/scripts/`: Codex-specific helper/install scripts
+- `scripts/update-skills.sh`: portable skill sync entrypoint
+
 ## Installing a skill
 
-Skills in [`.system`](skills/.system/) are automatically installed in the latest version of Codex.
+Skills in [`skills/.system`](skills/.system/) are automatically installed in the latest version of Codex.
 
-To install [curated](skills/.curated/) or [experimental](skills/.experimental/) skills, you can use the `$skill-installer` inside Codex.
+To install [`skills/.curated`](skills/.curated/) or [`skills/.experimental`](skills/.experimental/) skills, you can use the `$skill-installer` inside Codex.
 
 Curated skills can be installed by name (defaults to `skills/.curated`):
 
@@ -75,16 +86,36 @@ Example:
 ```toml
 [agents.reviewer]
 description = "Default reviewer preset"
-config_file = "<SKILLS_CHECKOUT>/.local/reviewer/agent.toml"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/reviewer.toml"
 ```
 
-The repo includes reusable snippets in [`.local/agent_roles_config_snippets.toml`](/home/ignat/code/skills/.local/agent_roles_config_snippets.toml). Replace `<SKILLS_CHECKOUT>` with your local checkout path and paste the needed blocks into `~/.codex/config.toml`.
+Helpers:
+
+- `codex/config/agent_roles_config_snippets.toml`: copy/pasteable role blocks
+- `codex/scripts/install-codex-agents.sh`: installs a managed agent block into a Codex config
+- `codex/scripts/codex_context_toggle.py`: enables/disables skills and agents with managed config blocks
 
 ## Suggested workflows by skill
 
-Local skills in `.local/` are repo-specific. Treat them as the source of truth for custom Codex agent manifests, and expose shared skill folders to tools via `~/.agents/skills`.
+Treat `skills/` as the source of truth for portable skills. Sync them into `~/.agents/skills/` with:
 
-### Local (`.local/`)
+```sh
+./update-skills.sh
+```
+
+To also refresh `~/.codex/skills/`, use:
+
+```sh
+./update-skills.sh --codex
+```
+
+For Codex agent prompts whose `developer_instructions` are intentionally derived from skill text, refresh them with:
+
+```sh
+python3 codex/scripts/sync_agent_prompts.py
+```
+
+### Portable (`skills/`)
 
 - `git-commit-style`: Draft commit messages after staging; summarize intent, behavioral impact, and testing in a repo-aligned format.
 - `athena`: Run supervisor-led requirements → design → tasks for new features; writes `.athena/specs/<feature>/`.
@@ -102,9 +133,10 @@ Local skills in `.local/` are repo-specific. Treat them as the source of truth f
 
 Recommended local setup:
 
-1. Symlink the skill folders you want to share into `~/.agents/skills/`.
-2. Point `~/.codex/config.toml` agent `config_file` entries at `<SKILLS_CHECKOUT>/.local/.../agent.toml`.
-3. Use `~/.codex/skills/` only for Codex-specific installed skill trees such as `.system`, `.local`, or other private/non-repo skills.
+1. Sync `skills/` into `~/.agents/skills/` with `./update-skills.sh`.
+2. Point `~/.codex/config.toml` agent `config_file` entries at `<SKILLS_CHECKOUT>/codex/agents/*.toml`.
+3. Use `codex/scripts/install-codex-hooks.sh --root .` when you want the Spec-Kit hook bundle in a repo-local `.codex/`.
+4. Use `~/.codex/skills/` only for Codex runtime skill trees, not as the canonical source repo layout.
 
 #### Hardening Workflow
 

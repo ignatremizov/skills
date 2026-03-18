@@ -1,0 +1,143 @@
+# Suggested snippets for ~/.codex/config.toml or project .codex/config.toml
+# Replace `<SKILLS_CHECKOUT>` with the absolute path to your local `skills` repo checkout.
+# Example: `/Users/alice/code/skills`
+
+[agents.athena_supervisor]
+description = "High-reasoning orchestration supervisor (Athena persona)"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/athena-supervisor.toml"
+
+[agents.audit_supervisor]
+description = "Supervisor for multi-agent read-only audit loops"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/audit-supervisor.toml"
+
+[agents.audit_scout_spark]
+description = "Fast producer for narrow-shard defect discovery"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/audit-scout-spark.toml"
+
+[agents.audit_validator]
+description = "Strict consumer for validating or rejecting candidate findings"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/audit-validator.toml"
+
+[agents.audit_deduper]
+description = "Canonical defect deduper and merger"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/audit-deduper.toml"
+
+[agents.coder_low]
+description = "Coder preset: low reasoning"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-low.toml"
+
+[agents.coder_spec]
+description = "Spec-task implementation worker"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-spec.toml"
+
+[agents.coder_pr]
+description = "ghc-driven PR review worker"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-pr.toml"
+
+[agents.coder_medium]
+description = "Coder preset: medium reasoning"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-medium.toml"
+
+[agents.coder_dry]
+description = "DRY/KISS/YAGNI cleanup coder"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-dry.toml"
+
+[agents.coder_hardening_contract]
+description = "Post-implementation contract hardening coder"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-contract.toml"
+
+[agents.coder_hardening_schema]
+description = "Post-implementation schema and migration hardening coder"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-schema.toml"
+
+[agents.coder_hardening_idempotency]
+description = "Post-implementation idempotency and transaction-safety hardening coder"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-idempotency.toml"
+
+[agents.coder_hardening_query]
+description = "Post-implementation query and selector hardening coder"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-query.toml"
+
+[agents.coder_hardening_auth]
+description = "Post-implementation auth, privacy, and recovery hardening coder"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-auth.toml"
+
+[agents.coder_hardening_async_ui]
+description = "Post-implementation async UI lifecycle hardening coder"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-async-ui.toml"
+
+[agents.coder_hardening_a11y]
+description = "Post-implementation accessibility and custom-control hardening coder"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-a11y.toml"
+
+[agents.coder_hardening_source_of_truth]
+description = "Post-implementation source-of-truth and duplication hardening coder"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-source-of-truth.toml"
+
+[agents.coder_hardening_money]
+description = "Post-implementation money, currency, and ledger-semantics hardening coder"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-money.toml"
+
+[agents.coder_high]
+description = "Coder preset: high reasoning"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-high.toml"
+
+[agents.coder_xhigh]
+description = "Coder preset: extra high rigor profile"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-xhigh.toml"
+
+[agents.coder_prototype]
+description = "Prototyping coder preset using codex spark"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-prototype-spark.toml"
+
+[agents.frontend_qa]
+description = "Frontend QA/browser automation using Playwright skill"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/frontend-qa.toml"
+
+[agents.explorer_local]
+description = "Explorer preset for focused code discovery"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/explorer.toml"
+
+[agents.awaiter_local]
+description = "Awaiter preset for long-running command monitoring"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/awaiter.toml"
+
+[agents.spec_kit_specify]
+description = "Spec-Kit specify phase worker"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/spec-kit-specify.toml"
+
+[agents.spec_kit_clarify]
+description = "Spec-Kit clarify phase worker"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/spec-kit-clarify.toml"
+
+[agents.spec_kit_plan]
+description = "Spec-Kit plan phase worker"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/spec-kit-plan.toml"
+
+[agents.spec_kit_tasks]
+description = "Spec-Kit tasks phase worker"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/spec-kit-tasks.toml"
+
+[agents.spec_kit_checklist]
+description = "Spec-Kit checklist phase worker"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/spec-kit-checklist.toml"
+
+[agents.spec_kit_analyze]
+description = "Spec-Kit analyze phase worker"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/spec-kit-analyze.toml"
+
+[agents.supervisor_hardening]
+description = "Supervisor for dependency-aware post-implementation hardening waves"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/supervisor-hardening.toml"
+
+[agents.supervisor_review_loop]
+description = "Supervisor orchestration loop (existing skill folder)"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/supervisor-review-loop.toml"
+
+[agents.quality_gate_hardening]
+description = "Audit-aware post-hardening sufficiency scorer"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/quality-gate-hardening.toml"
+
+[agents.reviewer]
+description = "Default reviewer preset"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/reviewer.toml"
