@@ -35,6 +35,7 @@ Map them to the corresponding `coder-hardening-*` agent profiles.
 - Choose the fewest hardening streams that materially reduce PR risk.
 - Keep write ownership disjoint where possible.
 - Run foundational hardening first when areas are coupled.
+- Always spawn delegated agents with `fork_context=false`.
 - Use the base `reviewer` profile for validation, but always add area-specific review instructions.
 - After the first hardening wave set is green, run `quality-gate-hardening`.
 - Reviewer remains critical-only.
