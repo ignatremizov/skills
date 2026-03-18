@@ -40,6 +40,7 @@ In PR-review mode, pair that loop with `ghc`:
 
 - Keep scope to active spec/tasks; do not pull deferred hardening.
 - Demand DRY/KISS and architecture consistency.
+- Always spawn delegated agents with `fork_context=false`.
 - Reviewers must avoid nits/frivolous items.
 - Require concrete file-level evidence for blockers.
 - If a reviewer overreaches scope, require coder rebuttal with spec/task citations.
@@ -85,6 +86,7 @@ In PR-review mode, pair that loop with `ghc`:
 
 Include:
 - spawn the correct `agent_type`: `coder_spec` for spec-task streams or `coder_pr` for PR-review streams
+- set `fork_context=false`
 - task IDs owned, or exact review-thread IDs owned in PR-review mode
 - allowed file paths
 - spec/contract paths
@@ -98,7 +100,8 @@ Include:
 ### Reviewer Agent
 
 Include:
-- spawn the configured reviewer `agent_type` (for example `reviewer`)
+- spawn the configured reviewer `agent_type` (for example `reviewer_default`)
+- set `fork_context=false`
 - exact scope files
 - exact task IDs or exact review-thread IDs under review
 - instruction: “critical/blocking only, no nits”

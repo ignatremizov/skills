@@ -46,6 +46,7 @@ After the initial hardening waves are green, run one **quality-gate agent** to j
 - This is post-coder hardening, not a second feature implementation pass.
 - Do not reopen deferred product scope.
 - Choose the fewest hardening agents that materially reduce PR risk.
+- Always spawn delegated agents with `fork_context=false`.
 - Do not run overlapping hardening agents on the same hot files in parallel unless one is explicitly scoped to a disjoint concern.
 - Require evidence-oriented outputs: files changed, tests run, invariants checked.
 - Reviewer remains critical-only; do not let the review loop degrade into style commentary.
