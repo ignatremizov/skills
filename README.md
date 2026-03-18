@@ -18,13 +18,13 @@ This checkout is a source repo, not a mirror of any runtime directory.
 - `codex/hooks/`: Codex-only hook bundles that can be installed into a repo or user `.codex/`
 - `codex/config/`: reusable config snippets for Codex agent registration
 - `codex/scripts/`: Codex-specific helper/install scripts
-- `scripts/update-skills.sh`: portable skill sync entrypoint
+- `update-skills.sh`: portable skill sync entrypoint
 
 ## Installing a skill
 
 Skills in [`skills/.system`](skills/.system/) are automatically installed in the latest version of Codex.
 
-To install [`skills/.curated`](skills/.curated/) or [`skills/.experimental`](skills/.experimental/) skills, you can use the `$skill-installer` inside Codex.
+To install curated skills from [`skills/.curated`](skills/.curated/), you can use the `$skill-installer` inside Codex.
 
 Curated skills can be installed by name (defaults to `skills/.curated`):
 
@@ -32,16 +32,10 @@ Curated skills can be installed by name (defaults to `skills/.curated`):
 $skill-installer gh-address-comments
 ```
 
-For experimental skills, specify the skill folder. For example:
+You can also provide the GitHub directory URL for a curated skill. For example:
 
 ```
-$skill-installer install the create-plan skill from the .experimental folder
-```
-
-Or provide the GitHub directory URL:
-
-```
-$skill-installer install https://github.com/openai/skills/tree/main/skills/.experimental/create-plan
+$skill-installer install https://github.com/openai/skills/tree/main/skills/.curated/linear
 ```
 
 After installing a skill, restart Codex to pick up new skills.
@@ -194,11 +188,6 @@ Skip the hardening workflow for trivial, tightly bounded diffs where the main co
 - `notion-meeting-intelligence`: Prepare meeting agendas and pre-reads from Notion context.
 - `notion-research-documentation`: Synthesize Notion research into briefs or comparison docs with citations.
 - `notion-spec-to-implementation`: Convert Notion specs into implementation tasks with progress tracking.
-
-### Experimental (`skills/.experimental/`)
-
-- `create-plan`: Provide a concise, single plan when the user explicitly asks for one.
-- `linear`: Read and update Linear issues and projects through the Linear MCP workflow.
 
 ## License
 
