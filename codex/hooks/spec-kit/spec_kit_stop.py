@@ -123,7 +123,8 @@ def gather_reasons(repo_root: Path) -> list[str]:
                 (not spec_path.exists()) or spec_path.stat().st_size == 0
             ):
                 reasons.append(
-                    f"Do not conclude yet. The active Spec-Kit flow is still in specify phase and `{feature_spec}` does not exist or is empty."
+                    "Continue the active Spec-Kit workflow in the `specify` phase. "
+                    f"Create or update `{feature_spec}` before concluding."
                 )
 
         tasks = path_info.get("TASKS")
@@ -133,7 +134,9 @@ def gather_reasons(repo_root: Path) -> list[str]:
                 unchecked = count_unchecked_tasks(tasks_path)
                 if unchecked > 0:
                     reasons.append(
-                        f"Do not conclude yet. `{tasks}` still contains {unchecked} unchecked task item(s). Continue the workflow or explicitly explain why those tasks remain open."
+                        "Continue the active Spec-Kit workflow. "
+                        f"`{tasks}` still has {unchecked} unchecked task item(s). "
+                        "Complete the remaining tasks, or explicitly state which ones are intentionally still open and why."
                     )
     return reasons
 
