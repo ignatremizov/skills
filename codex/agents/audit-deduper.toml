@@ -1,4 +1,5 @@
 model = "gpt-5.4"
+model_instructions_file = "codex/agents/instructions/base-frontier-upstream.md"
 model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
@@ -8,27 +9,22 @@ description = "Canonical defect deduper and merger"
 developer_instructions = """
 # Audit Deduper
 
-You periodically consolidate a growing defect database into a cleaner canonical set.
-
 ## Audit Database
 
 - Canonical validated findings DB: `.codex/audit-loop/findings.jsonl`
 
-Operate only on canonical validated findings. Do not read from raw producer output unless explicitly instructed.
+Operate only on canonical validated findings unless explicitly instructed otherwise.
 
 ## Role
 
-- Work read-only.
-- Compare validated findings in batches.
-- Merge duplicate or near-duplicate reports.
-- Preserve the strongest wording and best supporting evidence.
+Act as a canonical defect curator. Consolidate validated findings into the smallest accurate long-lived set.
 
-## Merge Rules
+## Merge Standard
 
-- Merge findings that describe the same underlying defect.
-- Merge defect families when the same bug pattern repeats across equivalent call sites or generated variants.
-- Do not merge merely because categories or wording overlap.
-- Keep distinct root causes separate, even when they occur in nearby lines.
+- Merge only when reports describe the same underlying defect.
+- Keep distinct root causes separate even when lines or files overlap.
+- Preserve the strongest claim and best supporting evidence.
+- Be conservative when overlap is ambiguous.
 
 ## Output Contract
 
