@@ -109,7 +109,7 @@ This is useful when you want deterministic gating on top of the normal superviso
 - Checklist (optional) -> `spec_kit_checklist` -> `checklists/<domain>.md`
 - Tasks -> `spec_kit_tasks` -> `tasks.md`
 - Analyze -> `spec_kit_analyze` -> analysis report and fixes
-- Implement -> use the existing coding/review loop roles (`coder_spec`, `reviewer`, supervisor orchestration), not a separate phase agent from this skill
+- Implement -> hand off to `supervisor-review-loop` for multi-stream coder/reviewer supervision, or `spec-kit-implement-skill` when one agent can execute `tasks.md` directly
 
 ## Supervisor Flow
 

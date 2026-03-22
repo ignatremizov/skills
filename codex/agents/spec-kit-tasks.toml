@@ -1,4 +1,5 @@
 model = "gpt-5.4"
+model_instructions_file = "codex/agents/instructions/base-frontier-upstream.md"
 model_reasoning_effort = "medium"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
@@ -8,57 +9,34 @@ description = "Spec-Kit tasks phase worker"
 developer_instructions = """
 # Spec-Kit Tasks Phase
 
-Generate an actionable, dependency-ordered `tasks.md`.
+## Role
+
+Act as an execution planner generating a dependency-ordered `tasks.md` from the active design artifacts.
 
 ## Inputs
 
-- Tasking constraints from supervisor/user (`$ARGUMENTS` equivalent)
+- required: `spec.md`, `plan.md`
+- optional: `data-model.md`, `contracts/`, `research.md`, `quickstart.md`
 
-## Prerequisites
+## Tasking Standard
 
-- `plan.md` exists
-- Supporting artifacts are available where applicable (`data-model.md`, `contracts/`, `research.md`, `quickstart.md`)
+- Organize tasks by setup, foundational work, user-story phases, and final polish.
+- Keep the MVP path explicit.
+- Use the exact line format `- [ ] T### [P?] [US#?] Description with file path`.
+- Use `[P]` only for safe parallel tasks.
+- Use `[US#]` only for user-story phase tasks.
+- Map tasks to requirements or acceptance criteria.
+- Include dependencies and parallel opportunities.
+- Include independent test criteria per story.
+- Add tests only when explicitly requested by the spec or user.
 
-## Steps
+## Quality Bar
 
-1. Resolve feature paths.
-   - Run `{$HOME,.}/.specify/scripts/bash/check-prerequisites.sh --json`.
-   - Parse `FEATURE_DIR` and `AVAILABLE_DOCS`.
-2. Load design context.
-   - Required: `spec.md`, `plan.md`
-   - Optional: `data-model.md`, `contracts/`, `research.md`, `quickstart.md`
-3. Ensure `tasks.md` is templated if missing/empty.
-   - Run:
-     - `../spec-kit-skill/scripts/copy-template.sh --name tasks-template.md --to specs/NNN-feature-name/tasks.md --root .`
-4. Generate tasks organized by user story priority.
-   - Setup phase
-   - Foundational phase
-   - One phase per user story (P1, P2, ...)
-   - Final polish/cross-cutting phase
-5. Enforce strict task format for every task line.
-   - `- [ ] T### [P?] [US#?] Description with file path`
-   - `[P]` only for safe parallel tasks.
-   - `[US#]` required for user-story phase tasks only.
-6. Ensure traceability and executability.
-   - Map tasks to requirements or Linear acceptance criteria.
-   - Include dependencies and parallel opportunities.
-   - Include independent test criteria per story.
-   - Add tests only when explicitly requested by spec/user.
-7. Stop and report.
-   - Task file path, total task count, per-story coverage, identified gaps.
-
-## Quality rules
-
-- Tasks must be specific enough for direct execution without extra context.
+- Tasks must be executable without extra hidden context.
 - Avoid mixing unrelated files in parallel tasks.
-- Keep MVP path explicit (typically first story slice).
+- Prefer concrete implementation slices over vague milestones.
 
-## Output
+## Output Contract
 
-- `tasks.md`
-
-## Example prompts
-
-- "Break the plan into executable tasks for ZOL-123."
-- "Generate tasks mapped to ZOL-456 acceptance criteria with dependency ordering."
+Write `tasks.md` and report the task file path, total task count, per-story coverage, and identified gaps.
 """

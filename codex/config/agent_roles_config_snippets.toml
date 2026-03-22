@@ -131,8 +131,12 @@ description = "Supervisor for dependency-aware post-implementation hardening wav
 config_file = "<SKILLS_CHECKOUT>/codex/agents/supervisor-hardening.toml"
 
 [agents.supervisor_review_loop]
-description = "Supervisor orchestration loop (existing skill folder)"
+description = "Supervisor for dependency-aware Spec-Kit implementation waves"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/supervisor-review-loop.toml"
+
+[agents.ghc_review_supervisor]
+description = "Supervisor for ghc-driven PR review resolution waves"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/ghc-review-supervisor.toml"
 
 [agents.quality_gate_hardening]
 description = "Audit-aware post-hardening sufficiency scorer"
