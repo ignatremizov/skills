@@ -116,12 +116,25 @@ Before spawning agents, classify the change by:
    - Did runtime behavior move without adjacent docs/types/schemas?
 4. **Data correctness**
    - Are keys, money values, filters, or state transitions easy to get subtly wrong?
+5. **Abstraction / optimization expiry**
+   - Is the buggy code a duplicate or optimized fork of a more general path?
+   - What original constraint justified that fork?
+   - Is that constraint still true after later caching, indexing, infra, or library changes?
+   - Would deleting or bypassing the special case be safer than repairing it in place?
 
 Prefer:
 
 - one hardening agent for single-area changes
 - two sequential agents for tightly coupled areas
 - parallel waves only for disjoint write sets
+
+When a change touches a special-case path, force an explicit three-way comparison before choosing the hardening stream:
+
+- repair the local logic
+- remove the special case
+- route back to the canonical general path
+
+If the code exists for performance reasons, require one sentence on whether the benchmark justification still holds.
 
 ## Default Hardening Order
 
@@ -224,6 +237,7 @@ Use the base `reviewer` profile, but add one or more area-specific instructions.
 1. **Preflight**
    - Read the user request, changed files, and any available report/checklist inputs.
    - Classify the change into one or more hardening areas.
+   - Run an abstraction-review gate for any change that lands in an optimization, cached fast path, duplicate helper, or special-case branch.
    - Build a minimal wave plan.
 
 2. **Wave Planning**
@@ -257,6 +271,32 @@ Use the base `reviewer` profile, but add one or more area-specific instructions.
    - After the quality gate is satisfied, run one final reviewer with combined area instructions if the change spans multiple risk areas.
    - Use this to catch interaction defects between hardening slices.
 
+## Abstraction-Review Gate
+
+Run this gate during preflight whenever the changed area appears in:
+
+- an optimization path
+- a duplicate implementation of a general path
+- a cached fast path
+- a feature flag or special-case branch
+- any code whose main purpose is to avoid a previously expensive operation
+
+The gate is short and mandatory:
+
+1. Name the canonical general path, if one exists.
+2. State why the special path exists.
+3. State whether that reason is still valid.
+4. Compare:
+   - fix the special path
+   - delete the special path
+   - route callers back to the canonical path
+5. Prefer deletion or reuse of the canonical path when:
+   - semantics are duplicated
+   - performance justification is stale or unproven
+   - the special path has already drifted from the canonical behavior
+
+This is not a request to reopen product scope. It is a narrow review gate intended to catch cases where the safest change is to remove code rather than preserve or extend a risky special case.
+
 ## Agent Prompt Template
 
 ### Hardening Coder
@@ -288,6 +328,7 @@ Include:
 - changed files or diff summary
 - hardening areas already run
 - tests/checks already run
+- result of the abstraction-review gate when one was triggered
 - instruction: score relevant areas `0-100`
 - instruction: recommend at most one next hardening area
 - instruction: use audit-pattern sufficiency, not blocker-only review
@@ -314,6 +355,7 @@ Include:
 Always report:
 
 - selected hardening areas and why
+- whether the abstraction-review gate was triggered and its conclusion
 - streams run and files owned
 - reviewer cycles per stream
 - quality-gate score summary
