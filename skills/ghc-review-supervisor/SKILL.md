@@ -12,6 +12,20 @@ This skill is for the **supervised fix-and-resolve workflow**.
 - Use `gh-address-comments` when the fixes are already made and the remaining work is mostly fetching, replying, resolving, or re-requesting reviews.
 - Use `supervisor-review-loop` for Spec-Kit implementation supervision from `spec.md` and `tasks.md`.
 
+## Optional Hooks
+
+You can pair this supervisor loop with the `ghc-review-supervisor` Codex hook set.
+
+The hook bundle is meant to:
+
+- inject ghc review-loop context on session start
+- block completion until review refresh has happened after re-review requests
+- block completion until dedupe/grouping has been recorded
+- block completion while grouped fix batches remain
+- block completion while reviewer-green or post-push thread-resolution steps remain
+
+If you want to manage that hook bundle, use `$codex-hooks` and select the `ghc-review-supervisor` hook set.
+
 ## When to Use
 
 - You have one or more open PRs with unresolved `ghc` review threads.
