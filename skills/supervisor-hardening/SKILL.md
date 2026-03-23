@@ -14,6 +14,19 @@ It is for turning a mostly-working change into a review-hardened change by:
 - sequencing them to avoid overlap
 - pairing each hardening stream with a reviewer pass that uses area-specific additional instructions
 
+## Optional Hooks
+
+You can pair this supervisor loop with the `supervisor-hardening` Codex hook set.
+
+The hook bundle is meant to:
+
+- inject hardening-loop context on session start
+- block completion until quality-gate has run
+- block completion if a follow-up hardening area is still required
+- block completion if reviewer-green streams are still pending
+
+If you want to manage that hook bundle, use `$codex-hooks` and select the `supervisor-hardening` hook set.
+
 ## When to Use
 
 - Main coder work is complete enough that the remaining work is hardening, not feature design.

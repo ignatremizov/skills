@@ -66,21 +66,9 @@ Examples:
   - source preference: `$HOME/.specify/templates` first, repo `.specify/templates` second
   - skips non-empty targets unless `--force` is provided
 
-### `../../codex/scripts/install-codex-hooks.sh`
-
-- Purpose: install optional Spec-Kit lifecycle hooks into the target repo's `.codex/`.
-- Typical usage:
-  - `../../codex/scripts/install-codex-hooks.sh --root .`
-  - `../../codex/scripts/install-codex-hooks.sh --root . --force`
-- Behavior contract:
-  - installs `.codex/hooks.json`
-  - installs `.codex/hooks/spec_kit_session_start.py`
-  - installs `.codex/hooks/spec_kit_stop.py`
-  - ensures `.codex/config.toml` has `[features] codex_hooks = true`
-
 ## Optional Hooks
 
-The optional Spec-Kit hooks provide lightweight workflow enforcement:
+The optional Spec-Kit hook bundle provides lightweight workflow enforcement:
 
 - `SessionStart` hook:
   - injects current Spec-Kit phase context
@@ -92,6 +80,8 @@ The optional Spec-Kit hooks provide lightweight workflow enforcement:
   - blocks one completion pass and feeds a continuation prompt back into the model
 
 This is useful when you want deterministic gating on top of the normal supervisor logic.
+
+If you want to manage the hook bundle, use `$codex-hooks` and select the `spec-kit` hook set.
 
 **Init outputs**:
 - `specs/constitution.md`
