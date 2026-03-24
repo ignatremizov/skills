@@ -20,6 +20,13 @@ Write commit messages with enough detail to stand on their own during review or 
 
 - Rule of thumb: fewer than ~5 lines is likely too short; more than ~30 lines is likely too long.
 
+## Commit invocation guidance
+
+- For normal commits, feed the full message via stdin: `cat <<'EOF' | git commit -F -`
+- Avoid stacking many `-m` flags.
+- Do not pair `-F` with `--fixup` flows. For plain `--fixup=<commit>`, Git allows `-m` commentary but not `-F`.
+- For `--fixup=amend:<commit>` and `--fixup=reword:<commit>`, keep the workflow non-interactive by setting `GIT_EDITOR` to a script that overwrites the generated commit message file with the desired final text. Git still prepares the `amend!` template itself, but the editor script can replace that file contents deterministically before the commit completes.
+
 ## Content guidance
 
 - Explain what changed and why, not just where.
