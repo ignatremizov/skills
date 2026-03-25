@@ -1,5 +1,5 @@
 model = "gpt-5.4"
-model_instructions_file = "codex/agents/instructions/base-frontier-upstream.md"
+model_instructions_file = "instructions/base-frontier-upstream.md"
 model_reasoning_effort = "medium"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"

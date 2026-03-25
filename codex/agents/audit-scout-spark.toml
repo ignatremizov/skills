@@ -1,5 +1,5 @@
 model = "gpt-5.3-codex-spark"
-model_instructions_file = "codex/agents/instructions/base-fast-upstream.md"
+model_instructions_file = "instructions/base-fast-upstream.md"
 model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
