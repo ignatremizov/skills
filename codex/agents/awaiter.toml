@@ -1,5 +1,5 @@
 model = "gpt-5.4-mini"
-model_instructions_file = "codex/agents/instructions/base-frontier-upstream.md"
+model_instructions_file = "instructions/base-frontier-upstream.md"
 model_reasoning_effort = "low"
 background_terminal_max_timeout = 3600000
 name = "awaiter_local"
