@@ -3,7 +3,7 @@ model_instructions_file = "instructions/base-fast-upstream.md"
 model_reasoning_effort = "low"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
-name = "explorer_local"
+name = "explorer"
 description = "Explorer preset for focused code discovery"
 
 developer_instructions = """

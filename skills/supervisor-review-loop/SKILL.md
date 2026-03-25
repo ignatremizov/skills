@@ -35,7 +35,7 @@ Run **coding agents** for implementation and **ephemeral reviewer agents** for c
 Default worker selection:
 
 - Prefer `coder_spec` for normal task-owned Spec-Kit implementation streams.
-- The harness supports per-spawn `model` and `reasoning_effort` overrides, prefer keeping the domain role aligned to the task and overriding those controls directly instead of generic coder presets such as `coder_medium`, `coder_high`, or `coder_xhigh`, unless explicitly needed where work is not spec-based or out-of-spec.
+- The harness supports per-spawn `model` and `reasoning_effort` overrides, prefer keeping the domain role aligned to the task and overriding those controls directly instead of generic coder presets such as `coder` or `coder_xhigh`, unless explicitly needed where work is not spec-based or out-of-spec.
 
 ## Non-Negotiable Guardrails
 
@@ -78,7 +78,7 @@ Default worker selection:
 Include:
 
 - `agent_type`: usually `coder_spec`, with `model` / `reasoning_effort` overrides as needed
-- if needed, use `coder_medium`, `coder_high`, or `coder_xhigh` for non-spec-based work
+- if needed, use `coder` or `coder_xhigh` for non-spec-based work
 - `fork_context=false`
 - owned task IDs
 - allowed file paths

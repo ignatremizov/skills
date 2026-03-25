@@ -23,11 +23,9 @@ DEFAULT_MAPPINGS: tuple[tuple[str, str], ...] = (
     ("codex/agents/athena-supervisor.toml", "skills/athena-supervisor/SKILL.md"),
     ("codex/agents/awaiter.toml", "skills/awaiter/SKILL.md"),
     ("codex/agents/reviewer.toml", "skills/reviewer/SKILL.md"),
-    # Shared generic coder skill for reasoning-tier coders; task-specialized
+    # Shared generic coder skill for the default coder role; task-specialized
     # coders keep their own dedicated prompts.
-    ("codex/agents/coder-low.toml", "skills/coder/SKILL.md"),
-    ("codex/agents/coder-medium.toml", "skills/coder/SKILL.md"),
-    ("codex/agents/coder-high.toml", "skills/coder/SKILL.md"),
+    ("codex/agents/coder.toml", "skills/coder/SKILL.md"),
     ("codex/agents/coder-prototype-spark.toml", "skills/coder/SKILL.md"),
     # xhigh keeps its extra-rigor additions in a dedicated prompt source.
     ("codex/agents/spec-kit-specify.toml", "skills/spec-kit-specify-skill/SKILL.md"),
