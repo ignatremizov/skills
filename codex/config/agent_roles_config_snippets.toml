@@ -22,9 +22,9 @@ config_file = "<SKILLS_CHECKOUT>/codex/agents/audit-validator.toml"
 description = "Canonical defect deduper and merger"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/audit-deduper.toml"
 
-[agents.coder_low]
-description = "Coder preset: low reasoning"
-config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-low.toml"
+[agents.coder]
+description = "Coder preset; pass `reasoning_effort` when spawning"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder.toml"
 
 [agents.coder_spec]
 description = "Spec-task implementation worker"
@@ -33,10 +33,6 @@ config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-spec.toml"
 [agents.coder_pr]
 description = "ghc-driven PR review worker"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-pr.toml"
-
-[agents.coder_medium]
-description = "Coder preset: medium reasoning"
-config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-medium.toml"
 
 [agents.coder_dry]
 description = "DRY/KISS/YAGNI cleanup coder"
@@ -78,10 +74,6 @@ config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-source-of-truth.to
 description = "Post-implementation money, currency, and ledger-semantics hardening coder"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-money.toml"
 
-[agents.coder_high]
-description = "Coder preset: high reasoning"
-config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-high.toml"
-
 [agents.coder_xhigh]
 description = "Coder preset: extra high rigor profile"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-xhigh.toml"
@@ -94,11 +86,11 @@ config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-prototype-spark.toml"
 description = "Frontend QA/browser automation using Playwright skill"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/frontend-qa.toml"
 
-[agents.explorer_local]
+[agents.explorer]
 description = "Explorer preset for focused code discovery"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/explorer.toml"
 
-[agents.awaiter_local]
+[agents.awaiter]
 description = "Awaiter preset for long-running command monitoring"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/awaiter.toml"
 

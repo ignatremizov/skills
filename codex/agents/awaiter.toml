@@ -1,8 +1,8 @@
-model = "gpt-5.4-mini"
+model = "gpt-5.3-codex-spark"
 model_instructions_file = "instructions/base-frontier-upstream.md"
 model_reasoning_effort = "low"
 background_terminal_max_timeout = 3600000
-name = "awaiter_local"
+name = "awaiter"
 description = "Awaiter preset for long-running command monitoring"
 
 developer_instructions = """
