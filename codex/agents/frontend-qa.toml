@@ -1,7 +1,6 @@
 model = "gpt-5.3-codex-spark"
 model_instructions_file = "instructions/base-fast-upstream.md"
 model_reasoning_effort = "medium"
-model_reasoning_summary = "detailed"
 model_verbosity = "high"
 name = "frontend_qa"
 description = "Frontend QA/browser automation using Playwright skill"
