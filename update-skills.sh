@@ -75,29 +75,50 @@ fi
 if [[ ${#requested_skills[@]} -gt 0 ]]; then
   selected_skills=()
   for requested in "${requested_skills[@]}"; do
-    matches=()
+    exact_matches=()
+    top_level_matches=()
+    basename_matches=()
+
     for skill in "${skills[@]}"; do
-      if [[ "$skill" == "$requested" || "$(basename "$skill")" == "$requested" ]]; then
-        matches+=("$skill")
+      if [[ "$skill" == "$requested" ]]; then
+        exact_matches+=("$skill")
+      fi
+
+      if [[ "$(basename "$skill")" == "$requested" ]]; then
+        basename_matches+=("$skill")
+        if [[ "$skill" != */* ]]; then
+          top_level_matches+=("$skill")
+        fi
       fi
     done
 
-    if [[ ${#matches[@]} -eq 0 ]]; then
+    if [[ ${#exact_matches[@]} -eq 1 ]]; then
+      selected_skills+=("${exact_matches[0]}")
+      continue
+    fi
+
+    if [[ ${#top_level_matches[@]} -eq 1 ]]; then
+      selected_skills+=("${top_level_matches[0]}")
+      continue
+    fi
+
+    if [[ ${#basename_matches[@]} -eq 1 ]]; then
+      selected_skills+=("${basename_matches[0]}")
+      continue
+    fi
+
+    if [[ ${#basename_matches[@]} -eq 0 ]]; then
       echo "Skill not found under skills/: $requested" >&2
       echo "Available skills:" >&2
       printf '  - %s\n' "${skills[@]}" >&2
       exit 1
     fi
 
-    if [[ ${#matches[@]} -gt 1 ]]; then
-      echo "Ambiguous skill selector: $requested" >&2
-      echo "Matches:" >&2
-      printf '  - %s\n' "${matches[@]}" >&2
-      echo "Use the exact relative path under skills/." >&2
-      exit 1
-    fi
-
-    selected_skills+=("${matches[0]}")
+    echo "Ambiguous skill selector: $requested" >&2
+    echo "Matches:" >&2
+    printf '  - %s\n' "${basename_matches[@]}" >&2
+    echo "Use the exact relative path under skills/." >&2
+    exit 1
   done
   skills=("${selected_skills[@]}")
 fi
