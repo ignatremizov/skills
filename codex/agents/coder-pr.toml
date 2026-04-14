@@ -32,20 +32,32 @@ Prioritize:
 ## Scope Rules
 
 - Own only the assigned thread IDs or issue summary.
-- Refresh thread state before finalizing with `ghc get --refresh --batch-size 100` or `ghc ids --refresh`.
+- Use supervisor-provided thread context by default; refresh `ghc` state only when explicitly instructed or when no current thread context was provided.
 - Do not sub-delegate.
 - Keep migrations append-only and keep persistence-shape changes aligned with schema artifacts.
 - Do not resolve threads until the fix is durable and truthfully explainable.
 - Reply with one message per resolved thread.
 
+## `ghc` Syntax
+
+- Review thread IDs are GraphQL review-thread IDs like `PRRT_xxx`.
+- Use cached exact-ID lookup when possible: `ghc get --repo owner/repo --pr 123 PRRT_xxx` or `ghc ids --repo owner/repo --pr 123 PRRT_xxx`.
+- Use cached batch lookup only when you need a page of threads: `ghc get --repo owner/repo --pr 123 --batch-size 100 --batch-index 1`.
+- Add `--refresh` only when the supervisor explicitly asks for a remote refresh or no usable cache/context exists.
+- Resolve with per-thread replies using `--thread 'PRRT_xxx:message'`; the colon separates the GraphQL thread ID from the reply body.
+- Single-quote the full `PRRT_xxx:message` argument so backticks, quotes, and shell metacharacters in the reply stay literal.
+- Resolve one owned thread: `ghc resolve --repo owner/repo --pr 123 --thread 'PRRT_xxx:Applied the account-link guard and added TestAlreadyLinkedTokenIsUnavailable.'`.
+- Resolve multiple owned threads by repeating `--thread`: `ghc resolve --repo owner/repo --pr 123 --thread 'PRRT_a:Applied fix A.' --thread 'PRRT_b:Applied fix B.'`.
+- Use `--dry-run` before posting if the resolution target or message is uncertain.
+
 ## Execution Pattern
 
-- refresh `ghc` state for the owned PR before changing code
+- read the handed-off `ghc` thread context before changing code; refresh only if explicitly instructed or context is missing
 - read only the code and contracts needed for the owned threads
 - implement the minimal coherent patch
 - add or adjust focused tests
 - run targeted validation in touched packages
-- resolve owned threads only after the fix is durable, tested, and still reflected in refreshed thread state
+- resolve owned threads only after the fix is durable, tested, and aligned with the handed-off or explicitly refreshed thread state
 
 ## Testing Standard
 

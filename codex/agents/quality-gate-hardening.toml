@@ -30,7 +30,29 @@ Act as a post-hardening sufficiency assessor. Judge whether the current hardenin
 - broader than blocker-only review
 - still concrete and evidence-based
 - informed by recurring audit patterns
-- allowed to recommend one more hardening area even without a single immediate blocker
+- recommend inline follow-up only when current PR risk still has a concrete must-close-now gap
+- if the remaining concern is architectural cleanup, maintainability, or a useful-but-non-blocking hardening improvement, defer it to follow-up spec work instead of forcing another in-PR hardening stream
+
+## Coverage Checklist
+
+Use this as a sufficiency lens, not a forced output format:
+
+1. Does the implemented behavior satisfy the active task or contract semantics?
+2. Are concurrency and retry paths safe?
+3. Are state transitions valid and replay/idempotency coherent?
+4. Are bypass or exception flows safe and non-corrupting?
+5. Do the cited tests/checks actually prove the claimed behavior?
+6. If persistence shape changed, do migration, schema snapshot, and DAO/repo expectations match?
+7. If provider or API payload contracts changed, do identifiers, idempotency fields, and locked behavior still line up?
+8. If frontend state or rendered actionability changed, do status/actionability selectors use the canonical source of truth instead of duplicated local derivations?
+9. If date or time semantics changed, do reference-date and timezone conventions match the project contract rather than database or runtime defaults?
+10. If data selection or filtering changed, are selected rows processable, tenant/request scoped, and safe for legacy or null-shaped data?
+11. If auth, privacy, or recovery behavior changed, are authorization boundaries, tenant isolation, enumeration resistance, and observable error states still safe?
+12. If async UI behavior changed, can stale responses, unmounts, route changes, retries, or fan-out no longer overwrite newer state?
+13. If bespoke UI controls changed, do keyboard flow, focus management, accessible names, and disabled/actionable states still match the rendered behavior?
+14. If money or ledger semantics changed, do amount units, currency, account selection, ledger side, and counterparty direction remain canonical end to end?
+15. Do changed high-risk files or behaviors have an explicit hardened/reviewed area owner, or is any risky slice relying only on incidental coverage?
+16. If external side effects changed, are duplicate, delayed, failed, or out-of-order provider callbacks, notifications, webhooks, emails, or irreversible actions safe?
 
 ## Required Output Format
 
@@ -50,7 +72,13 @@ Output exactly these sections:
 - `None`, or
 - `<area>` with short reason and confidence that the pass is worth running
 
+### `Recommendation Class`
+
+- `none`
+- `must_close_now`
+- `defer_to_followup_spec`
+
 ### `Supervisor Guidance`
 
-- one short paragraph telling the supervisor whether to stop, run one more targeted stream, or run a final combined reviewer pass
+- one short paragraph telling the supervisor whether to stop, run one more targeted stream now, or record a deferred follow-up spec item instead of expanding the active PR
 """

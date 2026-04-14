@@ -37,6 +37,7 @@ Installs, disables, or uninstalls a Codex hooks bundle from this repo in <root>/
 
 Available hook sets:
   - spec-kit
+  - supervisor-review-loop
   - supervisor-hardening
   - ghc-review-supervisor
 EOF
@@ -56,6 +57,7 @@ fi
 
 SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CODEX_ROOT="$(CDPATH="" cd "$SCRIPT_DIR/.." && pwd)"
+HOOKS_ROOT="$CODEX_ROOT/hooks"
 HOOK_SET_DIR="$CODEX_ROOT/hooks/$HOOK_SET"
 TARGET_ROOT="$(CDPATH="" cd "$ROOT" && pwd)"
 TARGET_CODEX="$TARGET_ROOT/.codex"
@@ -110,15 +112,16 @@ PY
 }
 
 write_hooks_state() {
-  python3 - "$TARGET_HOOKS_STATE" "$HOOK_SET_DIR" "$HOOK_SET" <<'PY'
+  python3 - "$TARGET_HOOKS_STATE" "$HOOKS_ROOT" "$HOOK_SET_DIR" "$HOOK_SET" <<'PY'
 from pathlib import Path
 import json
 import sys
 
 state_path = Path(sys.argv[1])
-hook_set_dir = Path(sys.argv[2])
-hook_set = sys.argv[3]
-scripts = sorted(p.name for p in hook_set_dir.glob("*.py"))
+hooks_root = Path(sys.argv[2])
+hook_set_dir = Path(sys.argv[3])
+hook_set = sys.argv[4]
+scripts = sorted({p.name for p in [*hooks_root.glob("*.py"), *hook_set_dir.glob("*.py")]})
 payload = {"hook_set": hook_set, "scripts": scripts}
 state_path.parent.mkdir(parents=True, exist_ok=True)
 state_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
@@ -181,6 +184,9 @@ PY
     find "$HOOK_SET_DIR" -maxdepth 1 -type f -name '*.py' -exec basename {} \; | while read -r script; do
       rm -f "$TARGET_HOOKS/$script"
     done
+    find "$HOOKS_ROOT" -maxdepth 1 -type f -name '*.py' -exec basename {} \; | while read -r script; do
+      rm -f "$TARGET_HOOKS/$script"
+    done
   fi
 
   rm -f "$TARGET_CODEX/hooks.json" "$TARGET_HOOKS_STATE"
@@ -195,6 +201,7 @@ if [[ -f "$TARGET_CODEX/hooks.json" && "$FORCE" != "true" ]]; then
 fi
 
 cp "$HOOK_SET_DIR/hooks.json" "$TARGET_CODEX/hooks.json"
+find "$HOOKS_ROOT" -maxdepth 1 -type f -name '*.py' -exec cp {} "$TARGET_HOOKS/" \;
 find "$HOOK_SET_DIR" -maxdepth 1 -type f -name '*.py' -exec cp {} "$TARGET_HOOKS/" \;
 find "$TARGET_HOOKS" -maxdepth 1 -type f -name '*.py' -exec chmod +x {} \;
 write_hooks_state
@@ -202,6 +209,9 @@ set_codex_hooks_flag true
 
 echo "Installed $HOOK_SET hooks into $TARGET_CODEX"
 echo "  - $TARGET_CODEX/hooks.json"
+find "$HOOKS_ROOT" -maxdepth 1 -type f -name '*.py' -exec basename {} \; | sort | while read -r script; do
+  echo "  - $TARGET_HOOKS/$script"
+done
 find "$HOOK_SET_DIR" -maxdepth 1 -type f -name '*.py' -exec basename {} \; | sort | while read -r script; do
   echo "  - $TARGET_HOOKS/$script"
 done
