@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Session-start hook for supervisor-hardening flows."""
+"""Session-start hook for supervisor-review-loop flows."""
 
 from __future__ import annotations
 
@@ -29,11 +29,11 @@ def load_flow_state(repo_root: Path, transcript_path: str | None) -> dict | None
 
 
 def build_context(state: dict, source: str) -> str | None:
-    if state.get("mode") != "supervisor-hardening":
+    if state.get("mode") != "supervisor-review-loop":
         return None
 
     lines = [
-        "Supervisor-hardening hook context:",
+        "Supervisor-review-loop hook context:",
         f"- session source: {source}",
     ]
 
@@ -44,44 +44,27 @@ def build_context(state: dict, source: str) -> str | None:
     if state.get("session_key"):
         lines.append(f"- session key: {state['session_key']}")
 
-    completed = state.get("completed_areas")
-    if isinstance(completed, list) and completed:
-        lines.append(f"- completed hardening areas: {', '.join(map(str, completed))}")
-
-    quality_gate = state.get("quality_gate")
-    if isinstance(quality_gate, dict):
-        status = quality_gate.get("status")
-        if status:
-            lines.append(f"- quality-gate status: {status}")
-        recommended = quality_gate.get("recommended_area")
-        if recommended:
-            lines.append(f"- quality-gate recommended area: {recommended}")
-        followup_mode = quality_gate.get("followup_mode")
-        if followup_mode == "must_close_now":
-            lines.append("- quality-gate recommendation class: must close before PR")
-        elif followup_mode == "defer_to_followup_spec":
-            lines.append("- quality-gate recommendation class: defer to follow-up spec work")
-            if quality_gate.get("deferred_recorded"):
-                lines.append("- current defer decision has recorded follow-up state")
-            else:
-                lines.append("- current defer decision still needs recorded follow-up state")
-        if quality_gate.get("needs_rerun"):
-            lines.append("- quality-gate must be rerun for the latest patch state")
-
     pending_reviews = state.get("pending_reviews")
     if isinstance(pending_reviews, list) and pending_reviews:
-        lines.append(f"- hardening streams still in review-loop closure: {', '.join(map(str, pending_reviews))}")
+        lines.append(f"- streams still in review-loop closure: {', '.join(map(str, pending_reviews))}")
     must_close_findings = state.get("must_close_findings")
     if isinstance(must_close_findings, list) and must_close_findings:
-        lines.append(f"- recorded must-close findings: {len(must_close_findings)}")
+        lines.append("- must-close findings still recorded:")
         for finding in must_close_findings[:5]:
             lines.append(f"  - {finding}")
     deferred_findings = state.get("deferred_findings")
     if isinstance(deferred_findings, list) and deferred_findings:
-        lines.append(f"- recorded deferred findings: {len(deferred_findings)}")
+        lines.append("- deferred findings recorded:")
+        for finding in deferred_findings[:5]:
+            lines.append(f"  - {finding}")
+    ignored_rationales = state.get("ignored_finding_rationales")
+    if isinstance(ignored_rationales, list) and ignored_rationales:
+        lines.append("- ignored-finding rationales recorded:")
+        for rationale in ignored_rationales[:5]:
+            lines.append(f"  - {rationale}")
 
     lines.append(
-        "- do not conclude supervisor-hardening until any pending review-loop closure is cleared, quality-gate-hardening reflects the latest patch state, any must-close-now follow-up area is addressed, and deferred follow-up items are recorded before deferring them"
+        "- do not conclude supervisor-review-loop until every stream that changed after review has a fresh reviewer pass and the pending review-loop closure list is clear"
     )
     return "\n".join(lines)
 

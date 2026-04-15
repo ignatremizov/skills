@@ -1,41 +1,58 @@
 #!/usr/bin/env python3
-"""Session-start hook for Spec-Kit repos.
-
-Injects compact Spec-Kit workflow context into the model when a session starts
-or resumes inside a repo that has `.specify/`.
-"""
+"""Session-start hook for session-scoped Spec-Kit flows."""
 
 from __future__ import annotations
 
 import json
-import subprocess
 import sys
 from pathlib import Path
 
+HOOK_SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(HOOK_SCRIPT_DIR))
+sys.path.insert(0, str(HOOK_SCRIPT_DIR.parent))
 
-def find_repo_root(start: Path) -> Path | None:
-    current = start.resolve()
-    for candidate in [current, *current.parents]:
-        if (candidate / ".specify").is_dir():
-            return candidate
-    return None
+from hook_utils import find_repo_root, session_key_from_transcript_path
 
 
-def run_json(cmd: list[str], cwd: Path) -> dict | None:
-    try:
-        result = subprocess.run(
-            cmd,
-            cwd=cwd,
-            check=True,
-            text=True,
-            capture_output=True,
-        )
-    except Exception:
+MAX_CONTEXT_ITEMS = 5
+
+
+def read_state(path: Path) -> dict | None:
+    if not path.is_file():
         return None
     try:
-        return json.loads(result.stdout)
+        data = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
         return None
+    return data if isinstance(data, dict) else None
+
+
+def load_flow_state(repo_root: Path, transcript_path: str | None) -> tuple[dict | None, Path | None]:
+    state_dir = repo_root / ".codex" / "flow-state"
+    if transcript_path:
+        session_key = session_key_from_transcript_path(transcript_path)
+        path = state_dir / "by-session" / f"{session_key}.json"
+        data = read_state(path)
+        if data:
+            return data, path
+    return None, None
+
+
+def persist_session_state(repo_root: Path, transcript_path: str | None, state: dict, source_path: Path | None) -> None:
+    if not transcript_path:
+        return
+    session_key = session_key_from_transcript_path(transcript_path)
+    target_path = repo_root / ".codex" / "flow-state" / "by-session" / f"{session_key}.json"
+    payload = dict(state)
+    payload["session_key"] = session_key
+    payload["transcript_path"] = transcript_path
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    if source_path and source_path != target_path and source_path.name == "spec-kit-bootstrap.json":
+        try:
+            source_path.unlink()
+        except Exception:
+            pass
 
 
 def count_unchecked_tasks(tasks_path: Path) -> int:
@@ -48,57 +65,52 @@ def count_unchecked_tasks(tasks_path: Path) -> int:
     )
 
 
-def build_context(repo_root: Path, payload: dict) -> str | None:
-    detect_script = repo_root / ".specify" / "scripts" / "bash" / "detect-phase.sh"
-    prereq_script = repo_root / ".specify" / "scripts" / "bash" / "check-prerequisites.sh"
-
-    phase_info = (
-        run_json(["bash", str(detect_script), "--json"], repo_root)
-        if detect_script.is_file()
-        else None
-    )
-    path_info = (
-        run_json(["bash", str(prereq_script), "--json", "--paths-only"], repo_root)
-        if prereq_script.is_file()
-        else None
-    )
-
-    if not phase_info and not path_info:
+def build_context(state: dict, source: str) -> str | None:
+    if state.get("mode") != "spec-kit":
         return None
-
-    current_phase = None
-    if phase_info:
-        current_phase = (
-            phase_info.get("current_phase")
-            or phase_info.get("selected_phase")
-            or phase_info.get("latest_phase")
-        )
-
-    feature_dir = path_info.get("FEATURE_DIR") if path_info else None
-    feature_spec = path_info.get("FEATURE_SPEC") if path_info else None
-    tasks_path = Path(path_info["TASKS"]) if path_info and path_info.get("TASKS") else None
-    unchecked = count_unchecked_tasks(tasks_path) if tasks_path else 0
-    source = payload.get("source", "startup")
 
     lines = [
         "Spec-Kit hook context:",
         f"- session source: {source}",
     ]
-    if current_phase:
-        lines.append(f"- detected phase: {current_phase}")
-    if feature_dir:
-        lines.append(f"- feature dir: {feature_dir}")
-    if feature_spec:
-        lines.append(f"- spec path: {feature_spec}")
-    if tasks_path and tasks_path.is_file():
-        lines.append(f"- unchecked tasks: {unchecked}")
+    if state.get("feature_id"):
+        lines.append(f"- feature id: {state['feature_id']}")
+    if state.get("phase"):
+        lines.append(f"- active phase: {state['phase']}")
+
+    required_artifacts = state.get("required_artifacts")
+    if isinstance(required_artifacts, list) and required_artifacts:
+        lines.append("- required artifacts:")
+        for artifact in required_artifacts[:MAX_CONTEXT_ITEMS]:
+            lines.append(f"  - {artifact}")
+        if len(required_artifacts) > MAX_CONTEXT_ITEMS:
+            lines.append(f"  - ... {len(required_artifacts) - MAX_CONTEXT_ITEMS} more")
+
+    task_paths = state.get("task_paths")
+    if isinstance(task_paths, list) and task_paths:
+        lines.append("- tracked task paths:")
+        for task_path_value in task_paths[:MAX_CONTEXT_ITEMS]:
+            task_path = Path(str(task_path_value))
+            if task_path.is_file():
+                lines.append(
+                    f"  - {task_path}: {count_unchecked_tasks(task_path)} unchecked task item(s)"
+                )
+            else:
+                lines.append(f"  - {task_path}: missing")
+        if len(task_paths) > MAX_CONTEXT_ITEMS:
+            lines.append(f"  - ... {len(task_paths) - MAX_CONTEXT_ITEMS} more")
+
     lines.append(
-        "- if you conclude a Spec-Kit phase is complete, required artifacts must actually exist on disk"
+        "- if you conclude a Spec-Kit phase is complete, the declared required artifacts for this supervisor session must actually exist on disk"
     )
     lines.append(
-        "- if tasks.md exists and still has unchecked boxes, do not claim the implementation is complete"
+        "- if any declared task checklist for this supervisor session still has unchecked boxes, do not claim the implementation is complete"
     )
     return "\n".join(lines)
+
+
+def is_valid_bootstrap_state(state: dict | None) -> bool:
+    return state is not None and state.get("mode") == "spec-kit"
 
 
 def main() -> int:
@@ -108,7 +120,22 @@ def main() -> int:
     if repo_root is None:
         return 0
 
-    context = build_context(repo_root, payload)
+    state, source_path = load_flow_state(repo_root, payload.get("transcript_path"))
+    bootstrap_path = repo_root / ".codex" / "flow-state" / "spec-kit-bootstrap.json"
+    bootstrap_state = read_state(bootstrap_path)
+    bootstrap_can_seed_session = (
+        is_valid_bootstrap_state(bootstrap_state)
+        and source_path is None
+        and bool(payload.get("transcript_path"))
+    )
+    if bootstrap_can_seed_session:
+        state = bootstrap_state
+        source_path = bootstrap_path
+    if not state:
+        return 0
+    persist_session_state(repo_root, payload.get("transcript_path"), state, source_path)
+
+    context = build_context(state, payload.get("source", "startup"))
     if not context:
         return 0
 

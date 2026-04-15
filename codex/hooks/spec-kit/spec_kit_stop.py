@@ -1,29 +1,18 @@
 #!/usr/bin/env python3
-"""Stop hook for Spec-Kit repos.
-
-Blocks once when the model appears to conclude a Spec-Kit phase but required
-artifacts are missing or tasks remain unchecked.
-"""
+"""Stop hook for session-scoped Spec-Kit flows."""
 
 from __future__ import annotations
 
 import json
-import subprocess
 import sys
 from pathlib import Path
 
+HOOK_SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(HOOK_SCRIPT_DIR))
+sys.path.insert(0, str(HOOK_SCRIPT_DIR.parent))
 
-SPEC_KIT_TOPIC_HINTS = (
-    "spec-kit",
-    ".specify",
-    "spec.md",
-    "tasks.md",
-    "plan.md",
-    "clarify",
-    "checklist",
-    "analyze",
-    "specify",
-)
+from hook_utils import contains_phrase, find_repo_root, session_key_from_transcript_path
+
 
 COMPLETION_HINTS = (
     "done",
@@ -35,51 +24,41 @@ COMPLETION_HINTS = (
     "unblocked",
 )
 
-
-def find_repo_root(start: Path) -> Path | None:
-    current = start.resolve()
-    for candidate in [current, *current.parents]:
-        if (candidate / ".specify").is_dir():
-            return candidate
-    return None
-
-
-def run_json(cmd: list[str], cwd: Path) -> dict | None:
-    try:
-        result = subprocess.run(
-            cmd,
-            cwd=cwd,
-            check=True,
-            text=True,
-            capture_output=True,
-        )
-    except Exception:
-        return None
-    try:
-        return json.loads(result.stdout)
-    except Exception:
-        return None
+NEGATED_COMPLETION_HINTS = (
+    "not done",
+    "not completed",
+    "not complete",
+    "isn't done",
+    "isn't complete",
+    "is not done",
+    "is not complete",
+    "incomplete",
+    "not ready",
+    "not unblocked",
+)
 
 
-def transcript_mentions_spec_kit(transcript_path: str | None) -> bool:
+def load_flow_state(repo_root: Path, transcript_path: str | None) -> dict | None:
     if not transcript_path:
-        return False
-    path = Path(transcript_path)
+        return None
+    session_key = session_key_from_transcript_path(transcript_path)
+    path = repo_root / ".codex" / "flow-state" / "by-session" / f"{session_key}.json"
     if not path.is_file():
-        return False
+        return None
     try:
-        text = path.read_text(encoding="utf-8", errors="ignore").lower()
+        data = json.loads(path.read_text(encoding="utf-8"))
     except Exception:
-        return False
-    tail = text[-30000:]
-    return any(token in tail for token in SPEC_KIT_TOPIC_HINTS)
+        return None
+    return data if isinstance(data, dict) else None
 
 
 def looks_like_completion(last_assistant_message: str | None) -> bool:
     if not last_assistant_message:
         return False
     text = last_assistant_message.lower()
-    return any(token in text for token in COMPLETION_HINTS)
+    if any(contains_phrase(text, phrase) for phrase in NEGATED_COMPLETION_HINTS):
+        return False
+    return any(contains_phrase(text, phrase) for phrase in COMPLETION_HINTS)
 
 
 def count_unchecked_tasks(tasks_path: Path) -> int:
@@ -92,52 +71,47 @@ def count_unchecked_tasks(tasks_path: Path) -> int:
     )
 
 
-def gather_reasons(repo_root: Path) -> list[str]:
-    prereq_script = repo_root / ".specify" / "scripts" / "bash" / "check-prerequisites.sh"
-    detect_script = repo_root / ".specify" / "scripts" / "bash" / "detect-phase.sh"
-    path_info = (
-        run_json(["bash", str(prereq_script), "--json", "--paths-only"], repo_root)
-        if prereq_script.is_file()
-        else None
-    )
-    phase_info = (
-        run_json(["bash", str(detect_script), "--json"], repo_root)
-        if detect_script.is_file()
-        else None
-    )
+def gather_reasons(state: dict) -> list[str]:
+    if state.get("mode") != "spec-kit":
+        return []
 
     reasons: list[str] = []
-    current_phase = None
-    if phase_info:
-        current_phase = (
-            phase_info.get("current_phase")
-            or phase_info.get("selected_phase")
-            or phase_info.get("latest_phase")
-        )
+    phase = state.get("phase") or "current"
 
-    if path_info:
-        feature_spec = path_info.get("FEATURE_SPEC")
-        if feature_spec:
-            spec_path = Path(feature_spec)
-            if current_phase == "specify" and (
-                (not spec_path.exists()) or spec_path.stat().st_size == 0
-            ):
+    required_artifacts = state.get("required_artifacts")
+    if isinstance(required_artifacts, list):
+        for artifact_value in required_artifacts:
+            artifact = Path(str(artifact_value))
+            if not artifact.exists():
                 reasons.append(
-                    "Continue the active Spec-Kit workflow in the `specify` phase. "
-                    f"Create or update `{feature_spec}` before concluding."
+                    "Continue the active Spec-Kit workflow. "
+                    f"The required artifact `{artifact}` for phase `{phase}` is missing."
+                )
+            elif artifact.is_file() and artifact.stat().st_size == 0:
+                reasons.append(
+                    "Continue the active Spec-Kit workflow. "
+                    f"The required artifact `{artifact}` for phase `{phase}` is still empty."
                 )
 
-        tasks = path_info.get("TASKS")
-        if tasks:
-            tasks_path = Path(tasks)
-            if tasks_path.is_file():
-                unchecked = count_unchecked_tasks(tasks_path)
-                if unchecked > 0:
-                    reasons.append(
-                        "Continue the active Spec-Kit workflow. "
-                        f"`{tasks}` still has {unchecked} unchecked task item(s). "
-                        "Complete the remaining tasks, or explicitly state which ones are intentionally still open and why."
-                    )
+    task_paths = state.get("task_paths")
+    if isinstance(task_paths, list):
+        for task_path_value in task_paths:
+            task_path = Path(str(task_path_value))
+            if not task_path.is_file():
+                reasons.append(
+                    "Continue the active Spec-Kit workflow. "
+                    f"The tracked task checklist `{task_path}` is missing."
+                )
+                continue
+            unchecked = count_unchecked_tasks(task_path)
+            if unchecked > 0:
+                reasons.append(
+                    "Continue the active Spec-Kit workflow. "
+                    f"`{task_path}` still has {unchecked} unchecked task item(s). "
+                    "Complete and check off the remaining tasks, or update session state so this checklist is no longer tracked "
+                    "(for example by using `write-spec-kit-state.py --clear-task-paths` or rewriting `--task-path`)."
+                )
+
     return reasons
 
 
@@ -148,12 +122,13 @@ def main() -> int:
     if repo_root is None:
         return 0
 
-    if not transcript_mentions_spec_kit(payload.get("transcript_path")):
+    state = load_flow_state(repo_root, payload.get("transcript_path"))
+    if not state:
         return 0
     if not looks_like_completion(payload.get("last_assistant_message")):
         return 0
 
-    reasons = gather_reasons(repo_root)
+    reasons = gather_reasons(state)
     if not reasons:
         return 0
 

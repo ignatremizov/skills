@@ -3,11 +3,16 @@
 
 from __future__ import annotations
 
-import hashlib
 import json
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+
+HOOK_SCRIPT_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(HOOK_SCRIPT_DIR))
+sys.path.insert(0, str(HOOK_SCRIPT_DIR.parent))
+
+from hook_utils import contains_phrase, find_repo_root, session_key_from_transcript_path
 
 
 COMPLETION_HINTS = (
@@ -22,18 +27,20 @@ COMPLETION_HINTS = (
     "ready to conclude",
 )
 
-
-def find_repo_root(start: Path) -> Path | None:
-    current = start.resolve()
-    for candidate in [current, *current.parents]:
-        if (candidate / ".git").exists() or (candidate / ".codex").exists():
-            return candidate
-    return None
-
-
-def session_key_from_transcript_path(transcript_path: str) -> str:
-    return hashlib.sha256(transcript_path.encode("utf-8")).hexdigest()[:24]
-
+NEGATED_COMPLETION_HINTS = (
+    "not done",
+    "not completed",
+    "not complete",
+    "isn't done",
+    "isn't complete",
+    "is not done",
+    "is not complete",
+    "incomplete",
+    "not ready for review",
+    "not ready to re-request",
+    "not ready to rerun review",
+    "not ready to conclude",
+)
 
 def load_flow_state(repo_root: Path, transcript_path: str | None) -> dict | None:
     if not transcript_path:
@@ -53,7 +60,9 @@ def looks_like_completion(last_assistant_message: str | None) -> bool:
     if not last_assistant_message:
         return False
     text = last_assistant_message.lower()
-    return any(token in text for token in COMPLETION_HINTS)
+    if any(contains_phrase(text, phrase) for phrase in NEGATED_COMPLETION_HINTS):
+        return False
+    return any(contains_phrase(text, phrase) for phrase in COMPLETION_HINTS)
 
 
 def parse_dt(value: object) -> datetime | None:
@@ -110,13 +119,23 @@ def gather_prompts(state: dict) -> list[str]:
     if isinstance(pending_reviews, list) and pending_reviews:
         prompts.append(
             "Continue the ghc-review-supervisor workflow. "
-            f"The following streams are not reviewer-green yet: {', '.join(map(str, pending_reviews))}. Finish their reviewer loops before concluding."
+            f"The following streams still need review-loop closure: {', '.join(map(str, pending_reviews))}. Finish their reviewer loops and clear the pending review state before concluding."
+        )
+
+    must_close_findings = state.get("must_close_findings")
+    if isinstance(must_close_findings, list) and must_close_findings:
+        sample = "\n".join(f"- {finding}" for finding in must_close_findings[:5])
+        prompts.append(
+            "Continue the ghc-review-supervisor workflow. "
+            "There are recorded must-close reviewer findings that have not been cleared. "
+            "Fix or explicitly resolve them, rerun a fresh reviewer on the latest patch set, and clear the must-close finding state before concluding."
+            f"\n\nRecorded must-close findings:\n{sample}"
         )
 
     if isinstance(unresolved_threads, int) and unresolved_threads > 0 and not state.get("resolved_after_push"):
         prompts.append(
             "Continue the ghc-review-supervisor workflow. "
-            "Thread resolution has not been recorded after the latest push. Resolve the owned threads and refresh `ghc` before concluding."
+            "Thread resolution has not been recorded after the latest push. Ensure the owning coder resolves its threads with implementation-specific replies, then refresh `ghc` before concluding."
         )
 
     return prompts

@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .codex/hooks/supervisor_review_loop_session_start.py",
+            "timeout": 10,
+            "statusMessage": "supervisor review loop flow context"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 .codex/hooks/supervisor_review_loop_stop.py",
+            "timeout": 10,
+            "statusMessage": "supervisor review loop completion gate"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -137,3 +137,7 @@ config_file = "<SKILLS_CHECKOUT>/codex/agents/quality-gate-hardening.toml"
 [agents.reviewer]
 description = "Default reviewer preset"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/reviewer.toml"
+
+[agents.reviewer_exhaustive]
+description = "Optional high-recall reviewer preset for final sweeps"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/reviewer-exhaustive.toml"
