@@ -81,6 +81,10 @@ Example:
 [agents.reviewer]
 description = "Default reviewer preset"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/reviewer.toml"
+
+[agents.reviewer_exhaustive]
+description = "Optional high-recall reviewer preset for final sweeps"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/reviewer-exhaustive.toml"
 ```
 
 Helpers:
@@ -96,9 +100,10 @@ Hook bundles in this repo are installed from the skills repo checkout, not from 
 Use the scripts from your local skills checkout, for example:
 
 ```sh
-<SKILLS_REPO>/codex/scripts/install-codex-hooks.sh --hook-set spec-kit --root .
-<SKILLS_REPO>/codex/scripts/install-codex-hooks.sh --hook-set supervisor-hardening --root .
-<SKILLS_REPO>/codex/scripts/install-codex-hooks.sh --hook-set ghc-review-supervisor --root .
+<SKILLS_REPO>/codex/scripts/install-codex-hooks.sh --hook-set spec-kit --root /path/to/target-worktree
+<SKILLS_REPO>/codex/scripts/install-codex-hooks.sh --hook-set supervisor-review-loop --root /path/to/target-worktree
+<SKILLS_REPO>/codex/scripts/install-codex-hooks.sh --hook-set supervisor-hardening --root /path/to/target-worktree
+<SKILLS_REPO>/codex/scripts/install-codex-hooks.sh --hook-set ghc-review-supervisor --root /path/to/target-worktree
 ```
 
 For per-session hook state, use:
@@ -106,6 +111,20 @@ For per-session hook state, use:
 ```sh
 python3 <SKILLS_REPO>/codex/scripts/write-flow-state.py ...
 ```
+
+For `spec-kit`, prefer:
+
+```sh
+python3 <SKILLS_REPO>/codex/scripts/write-spec-kit-state.py ...
+```
+
+Record the supervisor session's active phase plus the exact required artifact and task-checklist paths for that session. Those paths may be absolute and may point into sibling repos or worktrees. Bootstrap state written without `--transcript-path` can seed a supervisor session that does not yet have transcript-keyed state; once a session exists, update it with `--transcript-path "$TRANSCRIPT_PATH"` so another resumed session cannot consume the wrong bootstrap payload.
+
+For `supervisor-review-loop`, use `python3 <SKILLS_REPO>/codex/scripts/write-flow-state.py --mode supervisor-review-loop ...` and keep `pending_reviews` aligned to streams that still need fresh reviewer closure. Persist exact must-close findings, deferred findings, and ignored-finding rationales in the same session state so resumes keep the real blocker context.
+
+For `supervisor-hardening`, if a later hardening stream changes the patch after the last quality-gate result, mark that result stale in flow-state with `--quality-gate-needs-rerun true`. Recording a fresh quality-gate result clears that flag automatically. Record `--quality-gate-followup-mode must_close_now` only when the recommended area must be completed in the active PR; use `defer_to_followup_spec` for architectural or maintainability follow-up that should be recorded for later spec work instead of forced inline. Persist open must-close items with `--must-close-finding ...` and deferred follow-up items with `--deferred-finding ...`, then clear them explicitly when those items are closed or handed off. For a current `defer_to_followup_spec` gate result, record at least one `--deferred-finding ...` in the same or a later write so session state acknowledges that exact defer decision. Use `--clear-pending-reviews` when you need to explicitly clear the stored review-loop-closure list.
+
+For `ghc-review-supervisor`, use `python3 <SKILLS_REPO>/codex/scripts/write-ghc-review-state.py ...` as a supervisor completion ledger, not as a mirror of the `ghc` cache. Keep remote review-thread contents and resolution truth in `ghc`; record only supervisor checkpoints and obligations such as refresh timestamps, unresolved-count snapshots, deduped fix groups, pending reviewer closures, must-close findings, deferred/ignored rationale, and post-push resolution verification.
 
 Here `<SKILLS_REPO>` means your local checkout path, for example `~/code/skills`.
 
@@ -150,7 +169,7 @@ Recommended local setup:
 
 1. Sync `skills/` into `~/.agents/skills/` with `./update-skills.sh`.
 2. Point `~/.codex/config.toml` agent `config_file` entries at `<SKILLS_CHECKOUT>/codex/agents/*.toml`.
-3. Use `<SKILLS_REPO>/codex/scripts/install-codex-hooks.sh --root .` when you want one of this repo's hook bundles in a repo-local `.codex/`.
+3. Use `<SKILLS_REPO>/codex/scripts/install-codex-hooks.sh --root /path/to/target-worktree` and point `--root` at the worktree or repo root where you want the repo-local `.codex/`.
 4. Use `~/.codex/skills/` only for Codex runtime skill trees, not as the canonical source repo layout.
 
 #### Hardening Workflow
@@ -163,7 +182,7 @@ Default flow:
 2. `supervisor-hardening` classifies the changed area and selects the minimum useful `coder-hardening-*` agents.
 3. Each hardening stream is validated by the base `reviewer` with area-specific additional instructions.
 4. `quality-gate-hardening` scores the relevant areas (`0-100`) and decides whether one more targeted hardening pass is still warranted.
-5. If quality-gate requests another area, run that one extra hardening stream, then re-run quality-gate.
+5. If quality-gate marks another area `must_close_now`, run that one extra hardening stream, then re-run quality-gate. If it marks an area `defer_to_followup_spec`, record it for later work instead of expanding the active PR.
 6. Run a final combined reviewer pass only when multiple hardening areas interacted or the supervisor wants one last integration check.
 
 Typical hardening order:

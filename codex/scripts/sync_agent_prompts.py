@@ -22,7 +22,6 @@ DEFAULT_MAPPINGS: tuple[tuple[str, str], ...] = (
     ("codex/agents/supervisor-review-loop.toml", "skills/supervisor-review-loop/SKILL.md"),
     ("codex/agents/athena-supervisor.toml", "skills/athena-supervisor/SKILL.md"),
     ("codex/agents/awaiter.toml", "skills/awaiter/SKILL.md"),
-    ("codex/agents/reviewer.toml", "skills/reviewer/SKILL.md"),
     # Shared generic coder skill for the default coder role; task-specialized
     # coders keep their own dedicated prompts.
     ("codex/agents/coder.toml", "skills/coder/SKILL.md"),

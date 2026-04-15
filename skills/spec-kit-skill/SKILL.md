@@ -68,20 +68,43 @@ Examples:
 
 ## Optional Hooks
 
-The optional Spec-Kit hook bundle provides lightweight workflow enforcement:
+The optional Spec-Kit hook bundle provides session-scoped workflow enforcement for the supervisor session:
 
 - `SessionStart` hook:
-  - injects current Spec-Kit phase context
-  - surfaces active feature paths when available
-  - warns the model not to claim completion while required artifacts are still missing
+  - injects the supervisor session's current phase context
+  - surfaces the exact required artifact paths and tracked task files recorded for that session
+  - warns the model not to claim completion while those declared artifacts are still missing
 - `Stop` hook:
-  - checks for missing `spec.md` in active specify flow
-  - checks for unchecked boxes in active `tasks.md`
+  - checks the supervisor session's declared required artifacts
+  - checks unchecked boxes in the supervisor session's declared task files
   - blocks one completion pass and feeds a continuation prompt back into the model
 
 This is useful when you want deterministic gating on top of the normal supervisor logic.
 
 If you want to manage the hook bundle, use `$codex-hooks` and select the `spec-kit` hook set.
+
+### Hook Setup and Use
+
+Use hooks only for the supervisor session, not for spawned phase workers.
+
+1. Identify the target worktree root for this supervised stream.
+   - example: `WORKTREE_ROOT=/path/to/target-worktree`
+2. Install the `spec-kit` hook bundle in that worktree before starting or resuming the supervisor session.
+   - `~/code/skills/codex/scripts/install-codex-hooks.sh --hook-set spec-kit --root "$WORKTREE_ROOT"`
+3. Start or resume the supervisor session in that worktree so the hook registration is loaded.
+4. Write session state for that supervisor session with:
+   - bootstrap state without `--transcript-path` can seed a supervisor session that does not yet have transcript-keyed state
+   - after the supervisor session exists, write or refresh the session-scoped state with `--transcript-path "$TRANSCRIPT_PATH"`
+   - `python3 ~/code/skills/codex/scripts/write-spec-kit-state.py --root "$WORKTREE_ROOT" ...`
+5. Record:
+   - active `--phase`
+   - `--feature-id` when useful
+   - every required artifact path with `--required-artifact`
+   - every gated task checklist with `--task-path`
+6. Update that state after each phase transition.
+7. For cross-repo features, pass absolute paths for required artifacts and task files in sibling repos or worktrees.
+8. Do not write Spec-Kit hook state from child workers. The installed hooks can exist in the same worktree, but only the supervisor session should have matching per-session state.
+9. A supervisor `SessionStart` on `resume` migrates bootstrap state only when the current transcript does not already have session state. For existing supervisor sessions, update state with `--transcript-path "$TRANSCRIPT_PATH"` instead of relying on global bootstrap state.
 
 **Init outputs**:
 - `specs/constitution.md`

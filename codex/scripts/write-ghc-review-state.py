@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Write per-session flow-state for the ghc-review-supervisor hook bundle."""
+"""Write per-session supervisor ledger state for the ghc-review-supervisor hook bundle.
+
+This records workflow checkpoints and blocking obligations. It intentionally
+does not mirror the ghc cache or store full review-thread payloads.
+"""
 
 from __future__ import annotations
 
@@ -23,8 +27,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--branch", required=True, help="Active branch name")
     parser.add_argument("--review-requested-at", help="ISO-8601 time when review was requested")
     parser.add_argument("--review-ready-after", help="ISO-8601 time before refresh is expected")
-    parser.add_argument("--last-refresh-at", help="ISO-8601 time of the latest ghc refresh")
-    parser.add_argument("--unresolved-threads", type=int, help="Current unresolved thread count")
+    parser.add_argument("--last-refresh-at", help="ISO-8601 time of the latest supervisor-owned ghc refresh checkpoint")
+    parser.add_argument("--unresolved-threads", type=int, help="Unresolved thread count snapshot from the latest ghc refresh")
     parser.add_argument(
         "--dedupe-complete",
         choices=("true", "false"),
@@ -33,14 +37,57 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--pending-group",
         action="append",
-        default=[],
+        default=None,
         help="Comma-separated thread-id batch, e.g. t1,t2,t3",
+    )
+    parser.add_argument(
+        "--clear-pending-groups",
+        action="store_true",
+        help="Clear any existing unresolved fix-group batches",
     )
     parser.add_argument(
         "--pending-review",
         action="append",
-        default=[],
-        help="Pending reviewer-green stream id; may be passed multiple times",
+        default=None,
+        help="Pending review-loop-closure stream id; may be passed multiple times",
+    )
+    parser.add_argument(
+        "--clear-pending-reviews",
+        action="store_true",
+        help="Clear any existing pending review-loop-closure stream ids",
+    )
+    parser.add_argument(
+        "--must-close-finding",
+        action="append",
+        default=None,
+        help="Persisted must-close reviewer finding; may be passed multiple times",
+    )
+    parser.add_argument(
+        "--clear-must-close-findings",
+        action="store_true",
+        help="Clear any existing must-close reviewer findings",
+    )
+    parser.add_argument(
+        "--deferred-finding",
+        action="append",
+        default=None,
+        help="Persisted deferred reviewer finding; may be passed multiple times",
+    )
+    parser.add_argument(
+        "--clear-deferred-findings",
+        action="store_true",
+        help="Clear any existing deferred reviewer findings",
+    )
+    parser.add_argument(
+        "--ignored-finding-rationale",
+        action="append",
+        default=None,
+        help="Persisted rationale for a finding intentionally not reopened; may be passed multiple times",
+    )
+    parser.add_argument(
+        "--clear-ignored-finding-rationales",
+        action="store_true",
+        help="Clear any existing ignored-finding rationales",
     )
     parser.add_argument(
         "--resolved-after-push",
@@ -76,6 +123,50 @@ def state_path(root: Path, session_key: str) -> Path:
     return root / ".codex" / "flow-state" / "by-session" / f"{session_key}.json"
 
 
+def load_existing_state(path: Path) -> dict[str, object]:
+    if not path.is_file():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def merge_unique_strings(existing: object, new_values: list[str]) -> list[str]:
+    merged: list[str] = []
+    if isinstance(existing, list):
+        for value in existing:
+            if isinstance(value, str):
+                normalized = value.strip()
+                if normalized and normalized not in merged:
+                    merged.append(normalized)
+    for value in new_values:
+        normalized = value.strip()
+        if normalized and normalized not in merged:
+            merged.append(normalized)
+    return merged
+
+
+def merge_unique_groups(existing: object, new_groups: list[list[str]]) -> list[list[str]]:
+    merged: list[list[str]] = []
+    seen: set[tuple[str, ...]] = set()
+    if isinstance(existing, list):
+        for raw_group in existing:
+            if isinstance(raw_group, list):
+                group = [part for part in raw_group if isinstance(part, str) and part]
+                key = tuple(group)
+                if group and key not in seen:
+                    seen.add(key)
+                    merged.append(group)
+    for group in new_groups:
+        key = tuple(group)
+        if group and key not in seen:
+            seen.add(key)
+            merged.append(group)
+    return merged
+
+
 def parse_bool(value: str | None) -> bool | None:
     if value is None:
         return None
@@ -103,12 +194,11 @@ def main() -> int:
         print(path)
         return 0
 
-    payload: dict[str, object] = {
-        "mode": "ghc-review-supervisor",
-        "session_key": session_key,
-        "pr": args.pr,
-        "branch": args.branch,
-    }
+    payload = load_existing_state(path)
+    payload["mode"] = "ghc-review-supervisor"
+    payload["session_key"] = session_key
+    payload["pr"] = args.pr
+    payload["branch"] = args.branch
     if args.transcript_path:
         payload["transcript_path"] = args.transcript_path
     if args.repo:
@@ -126,12 +216,30 @@ def main() -> int:
     if dedupe_complete is not None:
         payload["dedupe_complete"] = dedupe_complete
 
-    pending_groups = parse_groups(args.pending_group)
-    if pending_groups:
-        payload["pending_groups"] = pending_groups
+    if args.clear_pending_groups:
+        payload["pending_groups"] = []
+    if args.pending_group is not None:
+        pending_groups = parse_groups(args.pending_group)
+        payload["pending_groups"] = merge_unique_groups(payload.get("pending_groups"), pending_groups)
 
-    if args.pending_review:
-        payload["pending_reviews"] = args.pending_review
+    if args.clear_pending_reviews:
+        payload["pending_reviews"] = []
+    if args.pending_review is not None:
+        payload["pending_reviews"] = merge_unique_strings(payload.get("pending_reviews"), args.pending_review)
+    if args.clear_must_close_findings:
+        payload["must_close_findings"] = []
+    if args.must_close_finding is not None:
+        payload["must_close_findings"] = merge_unique_strings(payload.get("must_close_findings"), args.must_close_finding)
+    if args.clear_deferred_findings:
+        payload["deferred_findings"] = []
+    if args.deferred_finding is not None:
+        payload["deferred_findings"] = merge_unique_strings(payload.get("deferred_findings"), args.deferred_finding)
+    if args.clear_ignored_finding_rationales:
+        payload["ignored_finding_rationales"] = []
+    if args.ignored_finding_rationale is not None:
+        payload["ignored_finding_rationales"] = merge_unique_strings(
+            payload.get("ignored_finding_rationales"), args.ignored_finding_rationale
+        )
 
     resolved_after_push = parse_bool(args.resolved_after_push)
     if resolved_after_push is not None:

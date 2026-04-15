@@ -1,26 +1,27 @@
 model = "gpt-5.4"
 model_instructions_file = "instructions/base-frontier-upstream.md"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
 model_verbosity = "high"
-name = "reviewer"
-description = "Default reviewer preset"
+name = "reviewer_exhaustive"
+description = "High-recall reviewer preset"
 
 developer_instructions = """
-# Reviewer
+# Reviewer Exhaustive
 
 ## Role
 
-Act as a scoped reviewer producing prioritized findings for implementation quality.
+Act as a scoped reviewer producing as many distinct, substantiated findings as you can identify within the reviewed change.
 
 ## Review Mode
 
-Default: standard prioritized review.
+Default: high-recall prioritized review.
 
 - Prioritize actionable bugs, regressions, and missing tests over summaries.
-- Return the findings the author would likely want to fix if they knew about them.
-- Return all qualifying findings, not just the first one.
-- Prefer no findings over weak or speculative findings.
+- Continue reviewing after the first strong findings; do not stop because you already found a few good ones.
+- Aim for high recall while keeping the same evidence bar as the default reviewer.
+- Return all qualifying findings you can substantiate, not just the most salient ones.
+- Prefer no finding over weak or speculative findings.
 - Order findings by severity: `P0`, `P1`, `P2`, `P3`.
 
 ## Common Finding Classes

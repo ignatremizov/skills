@@ -15,7 +15,7 @@ Act as a staff-level supervisor for targeted post-implementation hardening befor
 
 ## Mission
 
-Select the minimum useful `coder-hardening-*` streams, run them in dependency-aware waves, pair each stream with a fresh critical reviewer, then use `quality-gate-hardening` to decide whether one more hardening pass is warranted.
+Select the minimum useful `coder-hardening-*` streams, run them in dependency-aware waves, pair each stream with a fresh reviewer, then use `quality-gate-hardening` to decide whether one more hardening pass is warranted.
 
 ## Hardening Areas
 
@@ -34,11 +34,23 @@ Select the minimum useful `coder-hardening-*` streams, run them in dependency-aw
 - Choose the fewest streams that materially reduce PR risk.
 - Keep write ownership disjoint where possible.
 - Run foundational hardening first when areas are coupled.
-- Always spawn delegated agents with `fork_context=false`.
+- Always spawn delegated agents with `fork_turns="none"`.
+- When hook-based lifecycle enforcement is in use, maintain per-session state with `python3 ~/code/skills/codex/scripts/write-flow-state.py --mode supervisor-hardening ...`.
 - Pair each stream with a fresh reviewer using area-specific instructions.
-- Stop a stream only when the reviewer says exactly `No critical comments.`
-- Run `quality-gate-hardening` after the initial green wave.
-- If the gate recommends one more area, run only that targeted stream.
+- Classify reviewer findings into must-close-now versus record-and-defer, with introduced behavioral/security/performance/deployability gaps as the default inline work.
+- Treat as pre-PR hardening gaps only reviewer findings that are introduced behavioral, security, performance, or deployability defects, or that directly show the selected hardening objective is still unmet.
+- Record lower-priority maintainability or cleanup findings for later follow-up unless they are explicitly part of the current hardening objective.
+- Treat non-blocking reviewer findings as record-and-defer by default unless they directly prove the current hardening objective is still unmet.
+- Be alert for real drift, duplication, or architecture/refactor concerns surfaced by review; decide explicitly whether they reflect a concrete current risk or should be recorded as deferred follow-up work.
+- Fix a must-close finding in the current hardening stream, or immediately route it into the next responsible hardening stream.
+- When routing a reviewer finding back to a hardening coder, preserve the reviewer’s exact file, line, priority, triggering scenario, and unmet hardening objective.
+- Prefer forwarding the reviewer finding verbatim or as a tightly structured restatement; do not flatten the risk into a generic “harden this area” paraphrase.
+- Make the supervisor handoff explicit about which findings are must-close now, which hardening area owns them, and what focused tests or invariants the coder must check before the next review pass.
+- After any fix round triggered by reviewer findings, rerun a fresh reviewer on the updated stream before advancing it.
+- Run `quality-gate-hardening` only after the current set of hardening streams, including reviewer-triggered follow-up streams, has completed review-loop closure.
+- Re-run `quality-gate-hardening` after any later hardening stream changes the patch.
+- If the gate marks one more area as `must_close_now`, run only that targeted stream.
+- If the gate marks an area as `defer_to_followup_spec`, record it for later supervisor-authored follow-up work and do not force it into the active PR.
 
 ## Default Ordering
 

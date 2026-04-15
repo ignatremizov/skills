@@ -20,24 +20,38 @@ Drive branch-owned fix streams through coder-plus-reviewer loops:
 - refresh unresolved `ghc` thread state before planning
 - group related threads into ownership-clean streams
 - start with the stack base PR or highest-risk branch
-- stop a stream only when the reviewer says exactly `No critical comments.`
-- resolve threads only after the fix is durable, tested, review-green, and pushed
+- use reviewer findings to decide what this stream must fix before threads can be resolved
+- have owning coders resolve their own threads after the fix is durable, tested, reviewed, and pushed
 
 ## Operating Rules
 
 - Keep scope to owned review threads and required validation only.
-- Always spawn delegated agents with `fork_context=false`.
+- Always spawn delegated agents with `fork_turns="none"`.
+- When hook-based lifecycle enforcement is in use, maintain per-session state with `python3 ~/code/skills/codex/scripts/write-ghc-review-state.py ...`.
+- Treat hook state as a supervisor completion ledger, not a mirror of the `ghc` cache; store checkpoints and blocking obligations, not full thread payloads.
 - Reserve reviewer capacity for churn on the critical path.
 - Do not let overlapping streams edit the same hot files unless intentionally serialized.
 - Refresh `ghc` data before final unresolved-count verification.
+- Treat remote `ghc` refresh as supervisor-owned coordination work, not default coder work.
 - Do not re-request external reviewers until the updated branch head is pushed and the stream's thread set is fully handled.
 
 ## Review-Loop Discipline
 
-- If blockers exist, route them back to the owning coder.
-- Require file-level evidence for blockers.
+- Triage each reviewer finding against the owned thread scope, the actual review request, and what this stream changed.
+- Classify reviewer findings into must-fix-before-resolution versus recorded/deferred follow-up, with introduced defects as the default blocker.
+- If a finding is a bug or regression introduced by this fix stream, route it back to the owning coder before resolving threads even when it is outside the original thread set.
+- If a finding is clearly pre-existing, unrelated to the fix stream's changes, or unsupported by file-level evidence, record the rationale and keep ownership boundaries clean.
+- Record non-blocking reviewer findings explicitly instead of silently ignoring them, but do not keep threads open for them unless they truly must be fixed before resolution.
+- Be alert for real drift, duplication, or architecture/refactor concerns surfaced by review; decide explicitly whether they reflect a concrete current risk or should be recorded as deferred follow-up work.
+- When routing a reviewer finding back to a coder, preserve the reviewer’s exact file, line, priority, triggering scenario, and violated expectation from the review thread.
+- Prefer forwarding the reviewer finding verbatim or as a tightly structured restatement; do not replace it with a vague supervisor paraphrase.
+- Make the supervisor handoff explicit about which findings block thread resolution now, which files are in scope for the fix, and what tests or refresh steps must run before threads can be resolved.
+- Require file-level evidence for findings.
 - If a reviewer overreaches scope, require rebuttal anchored in thread ownership and the actual review request.
-- Reopen stream status mentally until a fresh reviewer returns `No critical comments.`
+- Reopen stream status whenever the latest reviewer pass surfaces an introduced defect.
+- Reopen stream status for other findings only when they must be fixed before resolution.
+- After any fix round triggered by reviewer findings, require a fresh reviewer pass on the updated stream before resolving threads.
+- Conclude a stream only after every introduced defect is handled, any other findings that must be fixed before resolution are handled, a fresh post-fix reviewer pass has checked the latest patch set, and required validation is complete.
 
 ## Output Contract
 
