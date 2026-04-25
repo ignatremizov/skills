@@ -1,4 +1,4 @@
-model = "gpt-5.4"
+model = "gpt-5.5"
 model_instructions_file = "instructions/base-frontier-upstream.md"
 model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"
