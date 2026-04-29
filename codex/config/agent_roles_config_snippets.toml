@@ -78,6 +78,10 @@ config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-money.toml"
 description = "Coder preset: extra high rigor profile"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-xhigh.toml"
 
+[agents.coder_spark]
+description = "Coder preset: extra-high rigor profile using spark runtime"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-spark.toml"
+
 [agents.coder_prototype]
 description = "Prototyping coder preset using codex spark"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-prototype-spark.toml"
