@@ -12,11 +12,15 @@ Treat this skill as CLI-first automation. Do not pivot to `@playwright/test` unl
 ## Skill path (set once)
 
 ```bash
+# In this environment skills are stored under ~/.agents/skills
 export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
-export PWCLI="$CODEX_HOME/skills/playwright/scripts/playwright_cli.sh"
+export PWS="{$HOME/.agents,$CODEX_HOME}/skills/playwright"
+export PWCLI="$PWS/scripts/playwright_cli.sh"
+
+# User-scoped skills install under ~/.agents/skills (current), fallback to ~/.codex/skills.
 ```
 
-User-scoped skills install under `$CODEX_HOME/skills` (default: `~/.codex/skills`).
+User-scoped skills install under `~/.agents/skills` (current environment), and `~/.codex/skills` as a fallback in older setups.
 
 ## Quick start
 
