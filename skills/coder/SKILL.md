@@ -64,6 +64,7 @@ Minimum for task completion:
 - tests covering changed behavior
 - targeted package tests run and reported
 - broader touched-area tests when practical
+- Avoid absence-only tests: do not add tests whose main assertion is that files, functions, types, or modules do not exist. Prefer positive behavior or contract tests that prove the intended runtime outcome.
 
 ## Execution Pattern
 
