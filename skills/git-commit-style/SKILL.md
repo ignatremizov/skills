@@ -19,6 +19,10 @@ Write commit messages with enough detail to stand on their own during review or 
 ## Length guidance
 
 - Rule of thumb: fewer than ~5 lines is likely too short; more than ~30 lines is likely too long.
+- Treat a commit as large when any of these are true: `git diff --stat <base>..HEAD` shows roughly 800+ changed lines, 15+ changed files, changes in 3+ top-level areas/packages, a migration/API contract plus runtime code, or a money movement/compliance/security invariant. Use the fuller narrative style for those commits even if one numeric threshold is not crossed.
+- Treat a commit as small when it changes roughly fewer than 200 lines across fewer than 5 files, stays inside one local concern, and has no cross-service/domain invariant. Still cover each behavior change in the commit; use a proportionate message instead of the fuller large-commit narrative sections when those sections would not add clarity.
+- For large product/backend commits, prefer a longer PR-summary style message over a terse list. A 40-60 line commit body is acceptable when it is the only way to make the scope, contracts, and behavior reviewable without opening the diff.
+- When splitting a large diff into semantic commits, make each message self-contained. The `feat(...)` commit should explain the runtime behavior and contracts; the `test(...)` commit should explain the regression surface and what the coverage proves.
 
 ## Commit invocation guidance
 
@@ -34,6 +38,18 @@ Write commit messages with enough detail to stand on their own during review or 
 - Keep it factual; avoid filler.
 - When asked to draft a commit message, always inspect the diff first.
 - When asked to amend a commit message, inspect the diff for the commit plus the current changes (typically staged). Update the message to cover the full combined diff while preserving and expanding the original intent.
+- For large commits, use an explicit narrative shape when it helps:
+  - Opening paragraph: one or two sentences stating the feature/fix and the invariant it preserves.
+  - `Problem:` why the previous behavior/model was insufficient.
+  - `Approach:` the design decision or boundary being introduced.
+  - `Changes:` concrete bullets grouped by behavior, not by file path.
+  - `Backend/API contract assumptions:` only when the change depends on cross-service or payload contracts.
+  - `Validation:` or `Validation represented by this commit:` commands/tests or what the coverage proves.
+  - `Behavioral effect:` user-visible or operational outcome.
+- For test commits, describe the behavior under protection, the layers covered, and any intentionally deferred path. Avoid messages that only say "add tests" or list test filenames.
+- For frontend/UI commits, mention notable screenshots, selectors, accessibility/responsiveness, and non-regression checks when those are part of the value being shipped.
+- For backend/ledger/payment commits, include invariants, idempotency/transactionality notes, and cross-service assumptions when relevant.
+- If a section would be empty or obvious for a small change, omit it. The goal is complete review context, not a fixed template.
 
 ## Repo style alignment (required)
 
