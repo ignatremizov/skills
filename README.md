@@ -18,6 +18,7 @@ This checkout is a source repo, not a mirror of any runtime directory.
 - `codex/hooks/`: Codex-only hook bundles that can be installed into a repo or user `.codex/`
 - `codex/config/`: reusable config snippets for Codex agent registration
 - `codex/scripts/`: Codex-specific helper/install scripts
+- `openai/`: personal OpenAI/Codex prompt profiles, including full base-instruction replacements
 - `update-skills.sh`: portable skill sync entrypoint
 
 ## Installing a skill
@@ -70,6 +71,65 @@ remote_compaction = false
 ### Notes
 
 - If you keep `remote_compaction = true`, Codex may ignore `experimental_compact_prompt_file`.
+
+## Codex base-instruction profiles
+
+This repo keeps personal Codex base-instruction replacements under `openai/<model>/`.
+Use these when you want different Codex operating modes, such as coding, writing, or research,
+while sharing the same Codex home, auth, rollouts, skills, and MCP setup.
+
+Example profile files:
+
+- `openai/gpt-5.5/code.md`
+- `openai/gpt-5.5/writing.md`
+- `openai/gpt-5.5/research.md`
+- `openai/gpt-5.5/reporting.md`
+- `openai/gpt-5.5/upstream.md` as the upstream baseline snapshot
+
+Create a profile config in `~/.codex/<profile>.config.toml`:
+
+```toml
+model = "gpt-5.5"
+model_instructions_file = "/Users/iremizov/code/skills/openai/gpt-5.5/code.md"
+```
+
+Then launch Codex with that profile:
+
+```sh
+codex -p code
+```
+
+Repeat the same pattern for other profiles:
+
+```toml
+# ~/.codex/writing.config.toml
+model = "gpt-5.5"
+model_instructions_file = "/Users/iremizov/code/skills/openai/gpt-5.5/writing.md"
+```
+
+```sh
+codex -p writing
+```
+
+Notes:
+
+- `model_instructions_file` replaces the model's built-in base instructions for the session. Keep any base-level Codex operating guidance you rely on in the replacement file.
+- Runtime developer blocks, tool schemas, permissions/app/skills instructions, `AGENTS.md`, and selected skills are still injected separately by Codex.
+- Normal `spawn_agent` subagents inherit the parent session's resolved base instructions, so a session launched with `codex -p code` spawns agents with the same `code.md` base prompt unless an agent role explicitly overrides instructions.
+- Disable domain skills that do not fit a profile. For example, writing profiles should usually disable coding-specific skills so their summaries do not steer writing tasks:
+
+  ```toml
+  [[skills.config]]
+  name = "frontend-coding"
+  enabled = false
+
+  [[skills.config]]
+  name = "backend-coding"
+  enabled = false
+  ```
+
+- Keep global profile prompts broad. For writing projects, put genre, voice, explicitness, taboo/acceptable content, humor level, and taste boundaries in the project's `AGENTS.md` so each project can define its own style.
+- Use absolute paths in profile configs for predictable behavior across working directories.
 
 ## Codex agent config
 
@@ -151,6 +211,8 @@ python3 codex/scripts/sync_agent_prompts.py
 ### Portable (`skills/`)
 
 - `git-commit-style`: Draft commit messages after staging; summarize intent, behavioral impact, and testing in a repo-aligned format.
+- `frontend-coding`: Frontend implementation and review guidance for UI, layout, interaction, accessibility, responsiveness, and visual polish.
+- `backend-coding`: Backend implementation and review guidance for APIs, services, persistence, auth, telemetry, security/privacy, performance, and async/distributed flows.
 - `athena`: Run supervisor-led requirements → design → tasks for new features; writes `.athena/specs/<feature>/`.
 - `spec-kit-skill`: Supervisor orchestration for Spec-Kit phases; spawns workers with explicit phase skills.
 - `spec-kit-constitution-skill`: Draft or update `.specify/memory/constitution.md`.
