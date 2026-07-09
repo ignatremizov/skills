@@ -30,12 +30,17 @@ Harden only:
 - joins that break for legacy or null rows
 - filters that ignore soft-deleted, stale, or out-of-scope records
 - claim or released markers confused with terminal external identifiers
+- raw SQL placeholders used where PostgreSQL cannot infer a type, especially `? AS column` projections that need explicit casts
+- GORM slice placeholders embedded in `Select` expressions where expansion may not behave like `Where`
+- nullable joins scanned into non-nullable destination fields without explicit `COALESCE` or nullable scan types
+- soft-delete filters copied mechanically into historical ledgers where the runtime consumer intentionally needs historical identity, or omitted where the canonical runtime path would filter them
 
 ## Execution Pattern
 
 - start from the runtime consumer, not the query in isolation
 - verify the query selects only processable rows
 - verify ordering and filtering are deterministic and policy-correct
+- compare raw SQL/GORM query behavior against the canonical runtime path before accepting or rejecting soft-delete findings
 - patch the smallest selection logic needed to restore runtime parity
 
 ## Testing Standard

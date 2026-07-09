@@ -19,27 +19,42 @@ Harden only:
 
 - duplicated helpers, types, or control logic
 - parallel derivations of the same domain concept
+- typed constants, status literals, enums, and frontend literal unions that represent one domain vocabulary
 - displayed state diverging from submitted payloads
-- search, index, or cache keys using different source fields from rendered state
+- search, index, formatter, or cache keys using different source fields from rendered state
+- downstream readers repairing or re-normalizing persisted values that already have a canonical request, import, migration, or repository write boundary
 
 ## Look For
 
 - multiple helpers for the same formatting or normalization rule
+- hard-coded status, enum, or lifecycle string comparisons after a typed constant or canonical vocabulary exists
+- redundant alias constants or parallel literal names that make one status/review state/lifecycle concept look like two concepts
 - duplicated type definitions already drifting
 - rendering one value while submit or search logic uses another
 - stale fallback values masquerading as current state
+- unreachable status or lifecycle branches left after the canonical lifecycle derivation moved
+- caches keyed by only part of the value derivation, such as formatter caches ignoring locale/currency/feature inputs when those inputs can change without process reload
 - cloned bespoke control logic that already diverged
+- DB readers, raw SQL queries/CTEs, query predicates, workers, or ledger routes that trim strings, change case, repair enums, or add empty fallbacks for values the current writer contract already stores canonically
+- normalization duplicated across request parsing, repository writes, migrations, and downstream reads without a single owning boundary
+- defensive nil, empty-slice, trimming, capitalization, or fallback checks added downstream without first proving the request DTO, parser, import, migration, schema constraint, or repository write boundary does not already guarantee the value
 
 ## Execution Pattern
 
 - identify the canonical source for the concept first
+- identify where externally supplied values become canonical before changing readers
+- prove the validation/canonicalization boundary before either adding defensive read-time guards or dismissing a reviewer suggestion as redundant
+- before adding nil, length, or normalization guards suggested by review, inspect the actual DTO/value-vs-pointer types and route/request validation path; if the boundary proves the state impossible, prefer no code change or a narrow invariant comment/test over duplicated defensive repair
+- remove unreachable status branches or route them through the canonical lifecycle/status presenter rather than preserving dead compatibility code
 - consolidate only when the shared shape is clearly stable
 - keep policy-local differences only where they are real
+- remove read-time repair when the writer contract, schema, and tests already prove canonical storage; keep scoped migration/legacy repair only when dirty historical data is proven
 - prefer proving rendered and submitted behavior align over broad refactors
 
 ## Testing Standard
 
 - add focused checks where rendered, submitted, and searched values could diverge
+- add focused checks when removing downstream normalization from selectors, raw SQL/CTEs, workers, or ledger paths so the canonical writer boundary remains protected
 - report intentional non-consolidations explicitly
 - leave larger redesigns as follow-up rather than widening scope
 
@@ -48,6 +63,7 @@ Harden only:
 Always report:
 
 - duplicated or divergent sources reviewed
+- canonical write/input boundaries reviewed
 - consolidations made
 - tests or checks run
 - intentional non-consolidations left in place

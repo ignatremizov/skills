@@ -15,7 +15,7 @@ Act as a staff-level supervisor for targeted post-implementation hardening befor
 
 ## Mission
 
-Select the minimum useful `coder-hardening-*` streams, run them in dependency-aware waves, pair each stream with a fresh reviewer, then use `quality-gate-hardening` to decide whether one more hardening pass is warranted.
+Select the minimum useful `coder-hardening-*` streams, run them in dependency-aware waves, pair each stream with a fresh reviewer, run one unlensed blind-spot reviewer, run a triggered adversarial reviewer when the PR touches an abuse/bypass/race/cost surface, then use `quality-gate-hardening` to decide whether one more hardening pass is warranted.
 
 ## Hardening Areas
 
@@ -27,7 +27,11 @@ Select the minimum useful `coder-hardening-*` streams, run them in dependency-aw
 - async-ui
 - a11y
 - source-of-truth
+- layer-boundary
 - money
+- operability
+- docs
+- tests
 
 ## Operating Rules
 
@@ -37,17 +41,29 @@ Select the minimum useful `coder-hardening-*` streams, run them in dependency-aw
 - Always spawn delegated agents with `fork_turns="none"`.
 - When hook-based lifecycle enforcement is in use, maintain per-session state with `python3 ~/code/skills/codex/scripts/write-flow-state.py --mode supervisor-hardening ...`.
 - Pair each stream with a fresh reviewer using area-specific instructions.
-- Classify reviewer findings into must-close-now versus record-and-defer, with introduced behavioral/security/performance/deployability gaps as the default inline work.
-- Treat as pre-PR hardening gaps only reviewer findings that are introduced behavioral, security, performance, or deployability defects, or that directly show the selected hardening objective is still unmet.
+- Classify reviewer findings into must-close-now versus record-and-defer, with introduced behavioral, security, performance, data integrity, operational, or documentation-contract gaps as the default inline work.
+- Treat as pre-PR hardening gaps only reviewer findings that are introduced behavioral, security, performance, data integrity, operational, or documentation-contract defects, or that directly show the selected hardening objective is still unmet.
 - Record lower-priority maintainability or cleanup findings for later follow-up unless they are explicitly part of the current hardening objective.
 - Treat non-blocking reviewer findings as record-and-defer by default unless they directly prove the current hardening objective is still unmet.
 - Be alert for real drift, duplication, or architecture/refactor concerns surfaced by review; decide explicitly whether they reflect a concrete current risk or should be recorded as deferred follow-up work.
+- Route typed status/enum/literal drift, cache-key/input drift, diagnostic ambiguity, and shell/hook parsing drift into the existing source-of-truth, contract, operability, or tests streams instead of creating a new hardening category.
+- When a reviewer finding depends on a supposedly possible bad input or stored value, first prove whether DTO value types, route validation, schema constraints, or write contracts already make that state impossible before adding defensive guards.
 - Fix a must-close finding in the current hardening stream, or immediately route it into the next responsible hardening stream.
 - When routing a reviewer finding back to a hardening coder, preserve the reviewer’s exact file, line, priority, triggering scenario, and unmet hardening objective.
 - Prefer forwarding the reviewer finding verbatim or as a tightly structured restatement; do not flatten the risk into a generic “harden this area” paraphrase.
 - Make the supervisor handoff explicit about which findings are must-close now, which hardening area owns them, and what focused tests or invariants the coder must check before the next review pass.
 - After any fix round triggered by reviewer findings, rerun a fresh reviewer on the updated stream before advancing it.
-- Run `quality-gate-hardening` only after the current set of hardening streams, including reviewer-triggered follow-up streams, has completed review-loop closure.
+- After the current set of hardening streams, including reviewer-triggered follow-up streams, has completed review-loop closure, run one unlensed blind-spot reviewer before quality gate.
+- Use `reviewer_exhaustive` for the blind-spot sweep by default; use `reviewer` only for tiny or low-risk changes.
+- Do not pass hardening area instructions, selected-lens rationale, or prior reviewer conclusions to the blind-spot reviewer unless needed to avoid duplicate reporting.
+- Route must-close blind-spot findings into the smallest owning hardening stream, then rerun that stream's area reviewer and another blind-spot reviewer before quality gate.
+- Record non-blocking blind-spot findings as deferred follow-up with rationale.
+- Run an adversarial reviewer after the blind-spot sweep and before quality gate only when the PR touches auth/recovery/permissions/tenant scope, money/ledger/fees/balances, provider callbacks/webhooks/retries/irreversible side effects, user-controlled uploads/text/URLs/files, costly actions such as quotes/OCR/screening/notifications, state machines with malicious timing, or privacy/PII/anti-enumeration behavior.
+- Use `reviewer_exhaustive` for triggered adversarial sweeps by default; use `reviewer` only for tiny targeted changes.
+- Prompt adversarial review as an abuse/bypass/race/cost sweep, not another hardening taxonomy pass.
+- Route must-close adversarial findings into the smallest owning hardening stream, then rerun that stream's area reviewer, another blind-spot reviewer, and another adversarial reviewer before quality gate.
+- Record non-blocking adversarial findings as deferred follow-up with rationale, and record a skip rationale when adversarial review is not triggered.
+- Run `quality-gate-hardening` only after the current set of hardening streams, the blind-spot sweep, and any triggered adversarial sweep have completed review-loop closure.
 - Re-run `quality-gate-hardening` after any later hardening stream changes the patch.
 - If the gate marks one more area as `must_close_now`, run only that targeted stream.
 - If the gate marks an area as `defer_to_followup_spec`, record it for later supervisor-authored follow-up work and do not force it into the active PR.
@@ -59,7 +75,11 @@ Select the minimum useful `coder-hardening-*` streams, run them in dependency-aw
 - `query` before `money` when selection correctness is the deeper issue
 - `money` before `contract` when value semantics drive external shape
 - `contract` before UI consumer hardening when API shape changed
+- `operability` after core semantics when logs/metrics/rate limits/provider liveness depend on final state behavior
+- `docs` after semantics and contract shape are stable; when docs are material, require three docs review/correction passes before quality gate
+- `tests` after behavior is stable, or earlier when the only task is proof/isolation
 - `source-of-truth` before `a11y` when control logic is duplicated
+- `layer-boundary` before UI lifecycle or accessibility hardening when helper placement, misplaced normalization, or layer ownership drives the control shape
 
 ## Output Contract
 
@@ -68,6 +88,8 @@ Always report:
 - hardening areas selected and why
 - streams run and file ownership
 - reviewer cycle count
+- blind-spot reviewer result
+- adversarial reviewer result or skip rationale
 - quality-gate scores and recommendation
 - tests or checks run
 - skipped areas and rationale

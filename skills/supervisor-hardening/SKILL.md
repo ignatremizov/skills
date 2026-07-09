@@ -52,30 +52,40 @@ Use hooks only for the supervisor session, not for spawned hardening coders or r
 
 - Main coder work is complete enough that the remaining work is hardening, not feature design.
 - The change touches one or more known hardening areas:
-  - contract/docs/types
+  - contract/types/consumer surfaces
   - schema/migrations
   - idempotency/transaction safety
   - query/selectability/runtime parity
   - auth/privacy/recovery
   - async UI lifecycle
   - accessibility/custom controls
-  - source-of-truth / duplication
+  - source-of-truth / duplicated state
+  - helper reuse / layer-boundary placement
   - money/currency/ledger semantics
+  - operability/logging/provider liveness
+  - docs/comments/specs/invariants
+  - test proof and harness isolation
 - You want narrower post-coder agents instead of one more generalist pass.
 
 ## Core Model
 
 Run one or more narrow **hardening coders** and validate each stream with a **fresh reviewer** that receives extra instructions matching the hardening area.
 
-After the initial hardening review waves complete, run one **quality-gate agent** to judge whether the selected hardening was sufficient or whether another targeted hardening stream is still warranted.
+After the selected hardening review waves complete, run one unlensed **blind-spot reviewer** before the quality gate. This reviewer looks for concrete issues not covered by the selected hardening agents and must not use the hardening taxonomy as a checklist.
+
+After the blind-spot reviewer is closed, run a triggered **adversarial reviewer** only when the PR changes an abuse, bypass, concurrency, money, provider, privacy, or cost-amplification surface.
+
+After the blind-spot and any triggered adversarial reviewer are closed, run one **quality-gate agent** to judge whether the selected hardening was sufficient or whether another targeted hardening stream is still warranted.
 
 - Hardening coder owns a single hardening concern.
 - Reviewer stays scoped and prioritized, but add area-specific review instructions.
+- Blind-spot reviewer is unlensed and first-principles; it may report any concrete issue introduced or made actionable by the PR, including areas the supervisor did not select.
+- Adversarial reviewer is threat/abuse oriented; it should assume malicious or concurrent use, replay, malformed payloads, stale state, flaky providers, and cost-amplification attempts, but still report only concrete paths.
 - Quality-gate agent is audit-aware and scores the relevant hardening areas from `0-100`.
 - Quality-gate recommendations must distinguish `must_close_now` follow-up from `defer_to_followup_spec`.
-- Classify reviewer findings into must-close-now versus record-and-defer, with introduced behavioral/security/performance/deployability gaps as the default inline work.
+- Classify reviewer findings into must-close-now versus record-and-defer, with introduced behavioral, security, performance, data-integrity, operational, or documentation-contract gaps as the default inline work.
 - Keep waves small and non-overlapping.
-- Treat as pre-PR hardening gaps only reviewer findings that are introduced behavioral, security, performance, or deployability defects, or that directly show the selected hardening objective is still unmet.
+- Treat as pre-PR hardening gaps only reviewer findings that are introduced behavioral, security, performance, data-integrity, operational, or documentation-contract defects, or that directly show the selected hardening objective is still unmet.
 - Record lower-priority maintainability or cleanup findings for later follow-up unless they are explicitly part of the current hardening objective.
 - Treat non-blocking reviewer findings as record-and-defer by default unless they directly prove the current hardening objective is still unmet.
 - Be alert for real drift, duplication, or architecture/refactor concerns surfaced by review; decide explicitly whether they reflect a concrete current risk or should be recorded as deferred follow-up work.
@@ -86,6 +96,12 @@ After the initial hardening review waves complete, run one **quality-gate agent*
 - Make the handoff explicit about which findings are must-close now, which hardening area owns them, and what focused tests or invariants the coder must check before the next review pass.
 - After any fix round triggered by reviewer findings, rerun a fresh reviewer on the updated stream before advancing it.
 - Conclude a hardening stream only after its findings are closed for that stream, a fresh post-fix reviewer pass has checked the latest patch set, and the selected hardening objective is met.
+- Run the blind-spot reviewer only after the selected area-specific streams are closed, and before `quality-gate-hardening`.
+- Route blind-spot findings into the smallest owning hardening stream or record-and-defer them under the same must-close-now policy used for area-specific reviewer findings.
+- If a blind-spot finding causes a patch change, rerun a fresh blind-spot reviewer on the updated patch before quality gate.
+- Run an adversarial reviewer after the blind-spot sweep and before quality gate only when the PR touches a trigger surface: auth/recovery/permissions/tenant scope, money/ledger/fees/balances, provider callbacks/webhooks/retries/irreversible side effects, user-controlled uploads/text/URLs/files, costly actions such as quotes/OCR/screening/notifications, state machines with malicious timing, or privacy/PII/anti-enumeration behavior.
+- Route adversarial findings into the smallest owning hardening stream (`auth`, `idempotency`, `query`, `money`, `operability`, `contract`, or `source-of-truth`) or record-and-defer them under the same must-close-now policy.
+- If an adversarial finding causes a patch change, rerun that owning stream's area reviewer, the blind-spot reviewer, and the adversarial reviewer before quality gate.
 - If a later hardening stream changes the patch after the last quality-gate result, treat that gate result as stale and rerun the quality gate on the updated patch before concluding the session.
 - Do not conclude the overall session until all review-loop follow-up work is closed and `quality-gate-hardening` has produced a passing or follow-up decision for the latest patch state.
 - Only treat a quality-gate follow-up recommendation as blocking when it is classified `must_close_now`; record `defer_to_followup_spec` items for later work instead of recursively expanding the PR.
@@ -100,13 +116,15 @@ After the initial hardening review waves complete, run one **quality-gate agent*
 - Do not run overlapping hardening agents on the same hot files in parallel unless one is explicitly scoped to a disjoint concern.
 - Require evidence-oriented outputs: files changed, tests run, invariants checked.
 - Reviewer remains focused on actionable findings; do not let the review loop degrade into style commentary.
+- Blind-spot reviewer must be unlensed: do not pass area-specific instructions, selected hardening areas, or reviewer findings unless needed to avoid duplicate reporting.
+- Adversarial reviewer is not mandatory for ordinary refactors, docs-only changes, or low-risk schema cleanup; when skipped, record why no trigger surface was present.
 - Quality-gate agent may recommend another inline hardening stream only when current PR risk still has a must-close-now gap; otherwise it should defer the idea into follow-up spec work.
 
 ## Hardening Areas and Agent Mapping
 
 - `contract`
   - agent: `coder-hardening-contract`
-  - use when handlers, DTOs, swagger/docs, generated schemas, UI types, or labels drift
+  - use when handlers, DTOs, Swagger/OpenAPI wire schemas, generated schemas, UI types, extensible enum/literal consumer types, or API-backed labels drift
 - `schema`
   - agent: `coder-hardening-schema`
   - use when migrations, snapshots, registries, DAO shape, or prod-parity fixtures matter
@@ -127,10 +145,22 @@ After the initial hardening review waves complete, run one **quality-gate agent*
   - use when bespoke controls, modals, listboxes, icons, or keyboard behavior matter
 - `source-of-truth`
   - agent: `coder-hardening-source-of-truth`
-  - use when duplicated helpers or divergent rendered/submitted/search state exists
+  - use when duplicated helpers, unnecessary downstream normalization, typed status/enum/literal drift, cache-key/input drift, validation-boundary proof, or divergent rendered/submitted/search state exists
+- `layer-boundary`
+  - agent: `coder-hardening-layer-boundary`
+  - use when helper reuse, dead helpers, repo/helper placement, provider/transport persistence ownership, read-time normalization in the wrong layer, shared utility scope, or KISS/DRY layer boundaries matter
 - `money`
   - agent: `coder-hardening-money`
   - use when ledger side, amount semantics, currency/minor units, account selection, or counterparty direction matter
+- `operability`
+  - agent: `coder-hardening-operability`
+  - use when logs, metrics, alerts, diagnostics, diagnostic specificity, developer-facing hook/script output, rate limits, provider liveness, manual recovery, or safe-stuck operational visibility matter
+- `docs`
+  - agent: `coder-hardening-docs`
+  - use when comments, specs, README/AGENTS guidance, generated docs, diagrams, examples, runbooks, rollout notes, or invariant explanations matter
+- `tests`
+  - agent: `coder-hardening-tests`
+  - use when changed behavior needs stronger regression proof, DB/test harness isolation, fixture parity, shell/hook parsing proof, or assertion quality
 
 ## Quality-Gate Agent
 
@@ -140,7 +170,8 @@ After the initial hardening review waves complete, run one **quality-gate agent*
   - evaluate whether the chosen hardening areas were sufficient
   - score each relevant area `0-100`
   - recommend one additional hardening area if confidence is still too low
-  - apply a structured sufficiency checklist covering semantics, retry/concurrency safety, state transitions, bypass flows, test proof quality, persistence parity, payload/identifier contract alignment, data selection processability, auth/privacy boundaries, frontend status/actionability source-of-truth selectors, async UI stale-write safety, custom-control interaction semantics, money/ledger direction, timezone/reference-date contracts, high-risk coverage ownership, and external side-effect safety
+  - apply a structured sufficiency checklist covering semantics, retry/concurrency safety, state transitions, bypass flows, test proof quality, persistence parity, payload/identifier contract alignment, data selection processability, auth/privacy boundaries, frontend status/actionability source-of-truth selectors, helper reuse and layer-boundary ownership, async UI stale-write safety, custom-control interaction semantics, money/ledger direction, timezone/reference-date contracts, high-risk coverage ownership, and external side-effect safety
+  - include operational observability, documentation fidelity, and test-harness proof where relevant
 
 ## Change Classification Heuristic
 
@@ -151,14 +182,29 @@ Before spawning agents, classify the change by:
 2. **Execution risk**
    - Could retries, stale state, legacy rows, or deploy order break this?
 3. **Contract surface**
-   - Did runtime behavior move without adjacent docs/types/schemas?
+   - Did runtime behavior move without adjacent DTOs, types, schemas, or consumers?
+   - Do frontend/API enum-like consumer types preserve known literal safety while allowing unknown future strings when the backend contract requires compatibility?
 4. **Data correctness**
    - Are keys, money values, filters, or state transitions easy to get subtly wrong?
+   - Did the change leave hard-coded status/enum/lifecycle literals, redundant aliases, or unreachable lifecycle branches after introducing a canonical constant or presenter?
 5. **Abstraction / optimization expiry**
    - Is the buggy code a duplicate or optimized fork of a more general path?
    - What original constraint justified that fork?
    - Is that constraint still true after later caching, indexing, infra, or library changes?
    - Would deleting or bypassing the special case be safer than repairing it in place?
+6. **Helper / layer ownership**
+   - Did the change introduce generic helpers before there is stable multi-consumer demand?
+   - Did provider, transport, handler, or UI code start owning persistence selection or repository policy?
+   - Are helpers placed at the narrowest layer that owns the rule, or did they move into shared utilities too early?
+   - Did readers, raw SQL queries/CTEs, or workers add trimming, capitalization, enum repair, or fallback normalization that should instead live at the request/parser/import/migration/write boundary?
+7. **Proof and maintainability context**
+   - Did the change require tests, generated documentation, comments, specs, diagrams, or examples to keep the invariant understandable?
+   - Do tests prove the intended invariant under the repo's actual harness, or are reviewers likely to find missing proof, fake-schema drift, or cleanup/isolation gaps?
+8. **Operational behavior**
+   - Would logs, metrics, debug endpoints, rate limits, or status transitions let operators distinguish suppressed, failed-closed, retried, or safe-stuck states?
+   - Does the change expose raw PII or user-controlled text in operational surfaces without an explicit policy gate?
+   - Could adjacent provider calls, DB writes, or branch failures return indistinguishable diagnostics that slow incident triage?
+   - Did developer-facing hooks/scripts change verbosity, progress output, or failure behavior without matching docs or PR claims?
 
 Prefer:
 
@@ -184,9 +230,13 @@ When multiple areas compete, prefer this order unless the diff clearly justifies
 4. `query`
 5. `money`
 6. `contract`
-7. `source-of-truth`
-8. `async-ui`
-9. `a11y`
+7. `operability`
+8. `docs`
+9. `tests`
+10. `source-of-truth`
+11. `layer-boundary`
+12. `async-ui`
+13. `a11y`
 
 Rationale:
 
@@ -196,27 +246,37 @@ Rationale:
 - `query` before `money` when row selection itself may be wrong.
 - `money` before UI polish when semantic value mapping is the real risk.
 - `contract` after foundational backend semantics unless the change is contract-led.
+- `operability` after core semantics because truthful logs/alerts/rate limits depend on the final state machine, but before final test-proof when operational behavior is part of the required proof.
+- `docs` after semantics and contract shape are stable; when docs are material, run at least three docs review/correction passes before diminishing returns are assumed.
+- `tests` after the behavior shape is stable, unless the only remaining task is to add proof for an already-correct narrow change.
 - `source-of-truth` before `async-ui` or `a11y` when duplicated state/control logic is the underlying defect source.
+- `layer-boundary` after source-of-truth by default because helper placement should follow canonical ownership, but before UI lifecycle/a11y when misplaced helpers drive control-flow drift.
 - `a11y` last by default because it should validate the final control shape, not a moving target.
 
 ## Model-Aware Selection Rule
 
 The current hardening coders split into:
 
+- xhigh-reasoning:
+  - `coder-hardening-layer-boundary`
 - high-reasoning:
   - `coder-hardening-schema`
   - `coder-hardening-auth`
   - `coder-hardening-idempotency`
   - `coder-hardening-query`
   - `coder-hardening-money`
+  - `coder-hardening-operability`
 - medium-reasoning:
   - `coder-hardening-contract`
+  - `coder-hardening-docs`
   - `coder-hardening-source-of-truth`
+  - `coder-hardening-tests`
   - `coder-hardening-async-ui`
   - `coder-hardening-a11y`
 
 Selection rule:
 
+- run `coder-hardening-layer-boundary` at xhigh when helper placement, provider/transport persistence ownership, dead helper churn, broad shared utility extraction, or misplaced normalization is a material review risk
 - if both a high-reasoning and medium-reasoning area are triggered, default to the highest-risk high-reasoning stream first
 - only skip a triggered high-reasoning area when the diff is clearly bounded away from that concern
 - once high-risk semantic hardening is green, run the medium-reasoning hardening streams that depend on the stabilized shape
@@ -227,8 +287,9 @@ Use the base `reviewer` profile, but add one or more area-specific instructions.
 
 ### Contract
 
-- check only contract drift: runtime vs DTO/docs/types/consumers
-- treat stale or invalid generated schema/docs as actionable
+- check only contract drift: runtime vs DTO/types/schemas/consumers
+- treat stale or invalid generated schema as actionable
+- treat API/frontend enum-like types that lose known-literal safety, or become too closed for allowed future backend values, as actionable
 
 ### Schema
 
@@ -262,13 +323,36 @@ Use the base `reviewer` profile, but add one or more area-specific instructions.
 
 ### Source of Truth
 
-- check only duplicated knowledge and divergent rendered/submitted/search state
-- treat multiple active sources for one concept as actionable
+- check only duplicated knowledge, canonical write/input boundaries, typed status/enum/literal drift, cache key/input drift, unnecessary downstream normalization in readers/raw SQL/CTEs/workers, and divergent rendered/submitted/search state
+- treat multiple active sources for one concept, hard-coded lifecycle/status literals after canonical constants exist, or readers repairing data already canonicalized by writers, as actionable
+- before accepting a defensive nil/length/normalization finding, verify the DTO type, route validation, schema constraint, or write contract does not already make that state impossible
+
+### Layer Boundary
+
+- check only helper reuse, helper placement, dead helpers, misplaced normalization helpers, shared utility scope, and layer ownership
+- treat provider/transport code owning persistence selection, repository-policy leakage, one-off generic abstractions, and read-time repair that belongs at a write/input boundary as actionable when they increase current PR risk
 
 ### Money
 
 - check only money, direction, account/currency selection, and minor-unit correctness
 - treat wrong semantic side or stale money/account state as actionable
+
+### Operability
+
+- check only logging, metrics, diagnostics, PII exposure in operational surfaces, rate limits, provider liveness, and manual recovery visibility
+- treat misleading logs, indistinguishable adjacent failure diagnostics, unsafe debug defaults, unbounded costly side effects, and invisible safe-stuck states as actionable
+- include developer-facing hook/script output when a PR changes validation progress, silence/verbosity, or failure behavior
+
+### Docs
+
+- check only comments, specs, README/AGENTS guidance, generated docs, diagrams, examples, runbooks, rollout notes, and invariant explanations
+- treat stale, missing, misleading, or underspecified docs as actionable when they create concrete future maintenance, integration, audit, or operational risk
+- for material docs changes, require a three-pass loop: write/update, review against code and generated output, then correct overstatements/stale examples/missing invariants
+
+### Tests
+
+- check only regression proof, harness parity, fixture isolation, cleanup, and assertion quality
+- treat missing invariant coverage, fake-schema/test-harness drift, shell/hook parsing drift, and cleanup/isolation gaps as actionable only when the repo's actual harness does not already cover them
 
 ## Execution Protocol
 
@@ -286,33 +370,57 @@ Use the base `reviewer` profile, but add one or more area-specific instructions.
      - `query` before `money` when selection correctness is the deeper problem
      - `money` before `contract` when API/UI shape depends on corrected semantic value mapping
      - `contract` before `async-ui` when UI behavior depends on API shape
+     - `operability` after core semantics when logs/metrics/rate limits/provider liveness depend on final status behavior
+     - `docs` after semantics and contract shape are stable; run the three-pass docs loop when docs are material
+     - `tests` after behavior is stable, or earlier when the only task is proof/isolation
      - `source-of-truth` before `async-ui` or `a11y` when duplicated control logic is the root cause
+     - `layer-boundary` before `async-ui` or `a11y` when helper placement, misplaced normalization, or layer ownership drives the control shape
      - `a11y` after state/control hardening unless the only remaining risk is semantic HTML or keyboard support
 
 3. **Hardening Loop**
    - Spawn one hardening coder per stream.
    - After each stream, spawn a fresh `reviewer` with the corresponding area instructions.
-   - If a finding is an introduced behavioral, security, performance, or deployability defect, or it directly shows the selected hardening objective is still unmet, route it back to that hardening coder or into the smallest responsible follow-up hardening stream.
+   - If a finding is an introduced behavioral, security, performance, data-integrity, operational, or documentation-contract defect, or it directly shows the selected hardening objective is still unmet, route it back to that hardening coder or into the smallest responsible follow-up hardening stream.
    - If a finding is lower-priority maintainability or cleanup work outside the current hardening objective, record it for later follow-up instead of recursively expanding the hardening loop.
    - When sending review feedback back to a coder, include the exact reviewer finding or a structured restatement with `P` level, `file:line`, scenario, owning hardening area, and focused validation to rerun.
    - Every time a hardening coder changes the stream to address reviewer findings, rerun a fresh reviewer on the updated patch set before advancing that stream.
    - Close reviewer after each verdict.
 
-4. **Quality-Gate Pass**
-   - After the full current hardening set is closed, including any reviewer-triggered follow-up streams, spawn `quality-gate-hardening`.
+4. **Blind-Spot Sweep**
+   - After the full current hardening set is closed, including any reviewer-triggered follow-up streams, spawn one unlensed blind-spot reviewer.
+   - Default to `reviewer_exhaustive` when recall is worth the cost; use `reviewer` only for tiny or low-risk changes.
+   - Do not pass area-specific instructions or ask it to validate the supervisor's selected lenses.
+   - Prompt it to inspect the changed behavior from first principles and report concrete bugs, regressions, missing tests, contract breaks, or deployability risks that the selected hardening streams may have missed.
+   - Route must-close findings back into the smallest owning hardening stream, then rerun that stream's area reviewer and another blind-spot reviewer before quality gate.
+   - Record non-blocking blind-spot findings as deferred follow-up with rationale.
+
+5. **Adversarial Sweep**
+   - Decide whether adversarial review is triggered.
+   - Trigger it when the PR touches auth, recovery, permissions, tenant/account scoping, money movement, ledger posting, fees, balances, provider callbacks, webhooks, retries, irreversible side effects, user-controlled uploads/text/URLs/files, rate-limited or costly actions, state machines with malicious timing, privacy, PII, or anti-enumeration surfaces.
+   - If not triggered, record the skip rationale.
+   - If triggered, spawn `reviewer_exhaustive` by default; use `reviewer` only for tiny targeted changes.
+   - Prompt it as an adversarial abuse/bypass/race/cost sweep, not as another taxonomy review.
+   - Route must-close findings back into the smallest owning hardening stream, then rerun that stream's area reviewer, a blind-spot reviewer, and another adversarial reviewer before quality gate.
+   - Record non-blocking adversarial findings as deferred follow-up with rationale.
+
+6. **Quality-Gate Pass**
+   - After the full current hardening set, blind-spot sweep, and any triggered adversarial sweep are closed, including any reviewer-triggered follow-up streams, spawn `quality-gate-hardening`.
    - Give it:
      - changed files
      - areas already hardened
      - tests/checks already run
+     - blind-spot reviewer result
+     - adversarial reviewer result or skip rationale
      - the PR audit report context when available
    - If it recommends `None`, continue to final pass or stop.
    - If it marks one additional hardening area as `must_close_now`, run that targeted hardening stream next, mark the previous gate result stale, and then re-run the quality gate on the updated patch.
    - If it marks one additional hardening area as `defer_to_followup_spec`, record that area and rationale for later supervisor-authored follow-up work instead of expanding the active PR.
    - If a later hardening stream changes the patch after a gate result, treat the earlier gate result as stale and rerun `quality-gate-hardening` on the updated patch before concluding the session.
 
-5. **Cross-Area Final Pass**
+7. **Cross-Area Final Pass**
    - After the quality gate is satisfied, run one final reviewer with combined area instructions if the change spans multiple risk areas.
-   - When you want extra recall without weakening the normal loop, run the default `reviewer` and `reviewer_exhaustive` in parallel for this final pass.
+   - This is optional and separate from the required blind-spot sweep.
+   - When you want extra recall after quality gate, run the default `reviewer` and `reviewer_exhaustive` in parallel for this final pass.
    - Use this to catch interaction defects between hardening slices.
 
 ## Abstraction-Review Gate
@@ -365,13 +473,37 @@ Include:
 - area-specific additional instructions from this skill
 - work-specific review scope and area-specific constraints only
 
+### Blind-Spot Reviewer
+
+Include:
+
+- `agent_type`: `reviewer_exhaustive` by default, or `reviewer` only for tiny/low-risk changes
+- exact changed files or patch scope
+- instruction: `unlensed blind-spot sweep`
+- instruction: do not use the selected hardening areas, hardening taxonomy, or prior reviewer findings as a checklist
+- instruction: inspect the changed behavior from first principles and report concrete issues the selected hardening streams may have missed
+- instruction: keep the normal evidence bar; prefer no finding over weak speculation
+
+### Adversarial Reviewer
+
+Include:
+
+- `agent_type`: `reviewer_exhaustive` by default, or `reviewer` only for tiny/low-risk adversarial scopes
+- exact changed files or patch scope
+- instruction: `adversarial abuse/bypass/race/cost sweep`
+- instruction: assume a motivated user, compromised client, replayed request, concurrent request, malformed payload, stale state, flaky provider, or cost-amplification attempt
+- instruction: report only concrete exploit, abuse, corruption, privacy, or operational-cost paths introduced or made actionable by this PR
+- instruction: prefer no finding over speculative abuse stories
+- routing note: bypass/privacy findings usually route to `auth`; replay/race to `idempotency`; selector abuse to `query`; cost/liveness to `operability`; money loss to `money`; bad contract/input shape to `contract` or `source-of-truth`
+
 ### Optional Exhaustive Reviewer
 
 Include:
 
 - `agent_type`: `reviewer_exhaustive`
-- use it only for optional final or cross-area sweeps where extra recall is worth the cost
-- keep the same scope files and hardening-area boundaries as the normal reviewer
+- use it for the required blind-spot sweep by default, and for optional final or cross-area sweeps where extra recall is worth the cost
+- for optional area-specific sweeps, keep the same scope files and hardening-area boundaries as the normal reviewer
+- for blind-spot mode, do not pass hardening-area boundaries or area-specific instructions
 
 ### Quality Gate Agent
 
@@ -379,6 +511,8 @@ Include:
 
 - changed files or diff summary
 - hardening areas already run
+- blind-spot reviewer result
+- adversarial reviewer result or skip rationale
 - tests/checks already run
 - result of the abstraction-review gate when one was triggered
 - instruction: score relevant areas `0-100`
@@ -490,17 +624,27 @@ The important part is the handoff payload:
 - highest-risk backend change:
   - `schema` -> `auth` or `idempotency` -> `query` -> reviewer
 - backend API with migration:
-  - `schema` -> `contract` -> reviewer
+  - `schema` -> `contract` -> `docs` or `tests` when material -> reviewer
 - backend state machine / reconciliation:
   - `idempotency` -> `query` -> `money` -> reviewer
+- provider callback, notification, quote, or retry flow:
+  - `idempotency` or `money` -> `operability` -> `tests` -> reviewer
 - auth or recovery flow:
-  - `auth` -> `contract` -> reviewer
+  - `auth` -> `contract` -> `operability` when logs/diagnostics changed -> reviewer
+- docs, generated docs, or template-backed technical documentation change:
+  - `docs` -> `contract` when API wire behavior is affected -> reviewer
 - frontend data-heavy screen:
-  - `source-of-truth` -> `async-ui` -> reviewer
+  - `source-of-truth` -> `layer-boundary` or `async-ui` -> `tests` when behavior changed -> reviewer
 - frontend custom control:
-  - `source-of-truth` -> `a11y` -> reviewer
+  - `source-of-truth` -> `layer-boundary` or `a11y` -> reviewer
 - transfer or balance UI:
   - `money` -> `source-of-truth` -> `async-ui` -> reviewer
+- review-thread or external reviewer finding triage:
+  - route valid findings to the owning area, and route disputed test-harness/docs/logging findings to `tests`, `docs`, or `operability` before broad semantic streams
+- helper/refactor/shared utility change:
+  - `layer-boundary` -> reviewer
+- backend provider, transport, or handler selecting persistence:
+  - `query` -> `layer-boundary` -> reviewer
 
 ## Output Contract to User
 
@@ -510,6 +654,8 @@ Always report:
 - whether the abstraction-review gate was triggered and its conclusion
 - streams run and files owned
 - reviewer cycles per stream
+- blind-spot reviewer result
+- adversarial reviewer result or skip rationale
 - quality-gate score summary
 - any additional hardening area requested by quality gate
 - tests/checks run

@@ -23,7 +23,11 @@ Act as a post-hardening sufficiency assessor. Judge whether the current hardenin
 - `async-ui`
 - `a11y`
 - `source-of-truth`
+- `layer-boundary`
 - `money`
+- `operability`
+- `docs`
+- `tests`
 
 ## Review Lens
 
@@ -45,14 +49,24 @@ Use this as a sufficiency lens, not a forced output format:
 6. If persistence shape changed, do migration, schema snapshot, and DAO/repo expectations match?
 7. If provider or API payload contracts changed, do identifiers, idempotency fields, and locked behavior still line up?
 8. If frontend state or rendered actionability changed, do status/actionability selectors use the canonical source of truth instead of duplicated local derivations?
-9. If date or time semantics changed, do reference-date and timezone conventions match the project contract rather than database or runtime defaults?
-10. If data selection or filtering changed, are selected rows processable, tenant/request scoped, and safe for legacy or null-shaped data?
-11. If auth, privacy, or recovery behavior changed, are authorization boundaries, tenant isolation, enumeration resistance, and observable error states still safe?
-12. If async UI behavior changed, can stale responses, unmounts, route changes, retries, or fan-out no longer overwrite newer state?
-13. If bespoke UI controls changed, do keyboard flow, focus management, accessible names, and disabled/actionable states still match the rendered behavior?
-14. If money or ledger semantics changed, do amount units, currency, account selection, ledger side, and counterparty direction remain canonical end to end?
-15. Do changed high-risk files or behaviors have an explicit hardened/reviewed area owner, or is any risky slice relying only on incidental coverage?
-16. If external side effects changed, are duplicate, delayed, failed, or out-of-order provider callbacks, notifications, webhooks, emails, or irreversible actions safe?
+9. If persisted values already have a canonical writer/request/import boundary, did readers, raw SQL queries/CTEs, and workers avoid unnecessary trimming, capitalization, enum repair, and fallback normalization?
+10. If a canonical status/enum/lifecycle vocabulary changed, did hard-coded literals, redundant aliases, unreachable branches, and formatter/cache keys move with it?
+11. If backend enum-like values feed frontend/API consumers, do consumer types preserve known literal safety while remaining compatible with allowed future strings?
+12. If a reviewer finding proposes defensive nil/length/normalization guards, has the stream checked DTO value types, route validation, schema constraints, and write contracts before adding redundant code?
+13. If helpers, adapters, or shared utilities changed, is each helper owned by the narrowest stable layer instead of generic utility scope by default?
+14. If provider, transport, handler, or UI code changed, does it avoid owning persistence selection, repository policy, or lower-layer retry/query decisions?
+15. If date or time semantics changed, do reference-date and timezone conventions match the project contract rather than database or runtime defaults?
+16. If data selection or filtering changed, are selected rows processable, tenant/request scoped, and safe for legacy or null-shaped data?
+17. If auth, privacy, or recovery behavior changed, are authorization boundaries, tenant isolation, enumeration resistance, and observable error states still safe?
+18. If async UI behavior changed, can stale responses, unmounts, route changes, retries, or fan-out no longer overwrite newer state?
+19. If bespoke UI controls changed, do keyboard flow, focus management, accessible names, and disabled/actionable states still match the rendered behavior?
+20. If money or ledger semantics changed, do amount units, currency, account selection, ledger side, and counterparty direction remain canonical end to end?
+21. Do changed high-risk files or behaviors have an explicit hardened/reviewed area owner, or is any risky slice relying only on incidental coverage?
+22. If external side effects changed, are duplicate, delayed, failed, or out-of-order provider callbacks, notifications, webhooks, emails, or irreversible actions safe?
+23. If logs, metrics, diagnostics, debug endpoints, rate limits, provider/manual-recovery states, or developer-facing hooks/scripts changed, are operational signals truthful, minimally sensitive, and sufficient to distinguish suppressed, retried, failed-closed, safe-stuck, ordinary backlog, and adjacent write/provider failures?
+24. If docs, comments, specs, diagrams, generated docs, or examples changed or should change, do they match the final code and explain the relevant invariant without over-documenting obvious code?
+25. If docs are material to the PR, did the docs hardening stream run its three-pass write/review/correction loop or explicitly justify skipping it?
+26. If tests were added or relied on as proof, do they exercise the real invariant under the repo's actual harness, schema, fixtures, cleanup tracking, shell/hook input shape, and assertion failure behavior?
 
 ## Required Output Format
 
