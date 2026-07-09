@@ -23,6 +23,7 @@ Harden only:
 - refetch and error-state clearing
 - pagination or fan-out cancellation and staleness guards
 - restored selection state after async reloads
+- duplicate user actions while a request is in flight
 
 ## Look For
 
@@ -32,10 +33,12 @@ Harden only:
 - stale UI left visible after refetch or error branches
 - loops continuing after the request became stale
 - restored selections that no longer match current data
+- double-clicks, repeated submits, retry buttons, or modal actions that can dispatch duplicate irreversible or costly requests before loading/disabled state takes effect
 
 ## Execution Pattern
 
 - map async entry points and state writers before patching
+- map user action entry points that start async work, especially submit/approve/pay/retry/download flows
 - prefer explicit request supersession, abort, or stale-guard logic
 - clean up timers, watchers, and pending effects
 - preserve the intended feature shape rather than redesigning it

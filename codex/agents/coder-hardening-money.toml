@@ -31,11 +31,13 @@ Harden only:
 - bank identity collapsed into account identity
 - stale selected account or currency producing wrong UI or payloads
 - duplicated money helpers drifting in minor-unit behavior
+- provider-boundary states that protect money by failing closed but leave balances, refunds, top-ups, or retries operationally ambiguous
 
 ## Execution Pattern
 
 - identify the monetary or direction invariant first
 - trace how the invariant is derived, rendered, and persisted
+- route pure logging/alerting/rate-limit work to operability, but keep money/provider state semantics here when balances or ledger direction depend on them
 - fix the smallest semantic mismatch set
 - preserve business intent while hardening semantic correctness
 

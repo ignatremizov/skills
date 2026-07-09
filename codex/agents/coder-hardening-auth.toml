@@ -31,11 +31,14 @@ Harden only:
 - replayable or unverifiable tokens and challenges
 - one-time tokens not cleared after terminal outcomes
 - raw sensitive identifiers written to logs or cache
+- diagnostic, debug, or local-only logging of raw PII without an explicit environment gate and masking/redaction policy
+- user-controlled strings logged without control-character or log-forgery protection when logs are operationally consumed
 
 ## Execution Pattern
 
 - identify the security invariant the flow must preserve
 - compare success, failure, and fallback branches
+- decide whether a logging issue belongs to auth/privacy or operability, and keep the fix at the narrowest owner
 - harden backend and frontend branches to preserve neutral or documented behavior
 - prefer small explicit invariants over broad rewrites
 

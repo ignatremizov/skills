@@ -19,23 +19,30 @@ Harden only contract alignment across:
 
 - request and response DTOs
 - handler or runtime behavior
-- Swagger or OpenAPI annotations and generated docs
+- Swagger or OpenAPI wire shape where it affects consumers
 - frontend or client consumer types
 - labels, headers, or content that represent API-backed state
+
+Treat prose quality, generated documentation descriptions, examples, diagrams, comments, and template/render synchronization as out of scope unless the issue is an actual wire-contract mismatch. Report material docs-only drift in the handoff so the supervisor can route a separate docs hardening stream when needed.
 
 ## Look For
 
 - required versus optional drift
 - field name drift across path, query, or body
 - runtime response shape diverging from DTOs, docs, or types
-- docs or examples no longer matching behavior
+- frontend unions for API enum-like fields losing known literal autocomplete/safety, or becoming too closed when the backend intentionally permits unknown future values
+- docs or examples no longer matching behavior when the mismatch changes a consumer-visible contract
 - dead emits or consumers after a contract rename
-- generated docs or schema refs that became invalid
+- generated schema refs that became invalid as API contracts
+- decimal, money, enum, or identifier fields exposing internal implementation types in Swagger/OpenAPI instead of the intended wire representation
+- changed annotations, API definitions, or contract structs without regenerated client/schema artifacts expected by the repo
 
 ## Execution Pattern
 
 - identify changed contract surfaces first
 - compare runtime behavior to DTOs, docs, and consumers
+- for extensible backend enums, prefer consumer types that preserve known literals while still allowing unknown strings when compatibility requires it
+- verify generated contract output when annotations or schema-driving tags changed and consumers depend on the result
 - patch the smallest set of files that restores alignment
 - regenerate generated docs or schemas rather than hand-editing them
 

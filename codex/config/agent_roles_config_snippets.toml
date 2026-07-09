@@ -70,9 +70,25 @@ config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-a11y.toml"
 description = "Post-implementation source-of-truth and duplication hardening coder"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-source-of-truth.toml"
 
+[agents.coder_hardening_layer_boundary]
+description = "Post-implementation helper reuse and layer-boundary hardening coder"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-layer-boundary.toml"
+
 [agents.coder_hardening_money]
 description = "Post-implementation money, currency, and ledger-semantics hardening coder"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-money.toml"
+
+[agents.coder_hardening_operability]
+description = "Post-implementation logging, observability, and operational safety hardening coder"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-operability.toml"
+
+[agents.coder_hardening_docs]
+description = "Post-implementation documentation, comments, and invariant hardening coder"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-docs.toml"
+
+[agents.coder_hardening_tests]
+description = "Post-implementation test proof and isolation hardening coder"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/coder-hardening-tests.toml"
 
 [agents.coder_xhigh]
 description = "Coder preset: extra high rigor profile"

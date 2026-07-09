@@ -22,6 +22,7 @@ Harden only:
 - dedupe keys and conflict targets
 - deterministic ordering for keys, batching, or caching
 - terminal state handling for partial failures
+- ORM/session handle behavior that can drop transaction clauses, locks, or scoped predicates
 
 ## Look For
 
@@ -30,12 +31,16 @@ Harden only:
 - unstable keys built from mutable or inconsistently normalized fields
 - unordered iteration affecting cache, batch, or output shape
 - rows or jobs left in limbo instead of terminally marked
+- GORM `WithContext`, `Session`, or helper calls on a passed `*gorm.DB` handle that accidentally clear `FOR UPDATE`, `Clauses`, or transaction-scoped state
+- retry or race branches that wrap sentinel errors in a way that breaks `errors.Is` or caller retry/idempotency handling
+- execute-now or manual override paths that bypass retry cadence, delay markers, or durable wait metadata without an explicit invariant/test
 - mixed-version or reimport paths not covered by tests
 
 ## Execution Pattern
 
 - trace side effects and state transitions before patching
 - move checks inside deterministic or transactional boundaries where needed
+- preserve transaction handles and lock clauses when passing repository query builders through helpers
 - prefer explicit terminal handling for partial failures
 - preserve intended business behavior while hardening execution semantics
 
