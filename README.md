@@ -92,7 +92,7 @@ Example profile files:
 
 ### Model catalog overrides
 
-`openai/gpt-5.6/models-config-controlled.json` is the single custom model catalog for local GPT-5.6 testing. It preserves the upstream model entries while clearing `multi_agent_version` selectors so Codex falls back to local feature config for v1/v2 selection instead of model metadata forcing a version.
+`openai/gpt-5.6/models-config-controlled.json` is the single custom model catalog for local GPT-5.6 testing. It preserves the upstream model entries while clearing `tool_mode` and `multi_agent_version` selectors so Codex falls back to local feature config for Code Mode and v1/v2 selection instead of model metadata forcing either mode.
 
 Point each Codex home at it with an absolute path:
 
@@ -100,7 +100,7 @@ Point each Codex home at it with an absolute path:
 model_catalog_json = "/path/to/models-config-controlled.json"
 ```
 
-With that catalog, `[features] multi_agent = true` and `multi_agent_v2 = false` keeps multi-agent on v1. To test v2 for a session, enable `multi_agent_v2` and set a non-conflicting namespace such as `features.multi_agent_v2.tool_namespace = "agents"`; remove or omit `agents.max_threads` first, because Codex rejects that setting when the v2 feature is enabled.
+With that catalog, `[features] code_mode = false` and `code_mode_only = false` keeps direct tools such as unified `exec_command` available. `[features] multi_agent = true` and `multi_agent_v2 = false` keeps multi-agent on v1. To test Code Mode or v2 for a session, enable the corresponding feature flags; for v2, also set a non-conflicting namespace such as `features.multi_agent_v2.tool_namespace = "agents"` and remove or omit `agents.max_threads` first, because Codex rejects that setting when the v2 feature is enabled.
 
 Codex reads `model_catalog_json` at startup, so restart Codex after editing the catalog or changing the configured path.
 
