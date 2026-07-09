@@ -21,7 +21,7 @@ This checkout is a source repo, not a mirror of any runtime directory.
 - `codex/hooks/`: Codex-only hook bundles that can be installed into a repo or user `.codex/`
 - `codex/config/`: reusable config snippets for Codex agent registration
 - `codex/scripts/`: Codex-specific helper/install scripts
-- `openai/`: personal OpenAI/Codex prompt profiles, including full base-instruction replacements
+- `openai/`: personal OpenAI/Codex prompt profiles, upstream snapshots, and model catalog overrides
 - `update-skills.sh`: portable skill sync entrypoint
 
 ## Installing a skill
@@ -88,6 +88,21 @@ Example profile files:
 - `openai/gpt-5.5/research.md`
 - `openai/gpt-5.5/reporting.md`
 - `openai/gpt-5.5/upstream.md` as the upstream baseline snapshot
+- `openai/gpt-5.6/sol-upstream.md` and `openai/gpt-5.6/terra-luna-upstream.md` as upstream GPT-5.6 base-instruction snapshots
+
+### Model catalog overrides
+
+`openai/gpt-5.6/models-config-controlled.json` is the single custom model catalog for local GPT-5.6 testing. It preserves the upstream model entries while clearing `multi_agent_version` selectors so Codex falls back to local feature config for v1/v2 selection instead of model metadata forcing a version.
+
+Point each Codex home at it with an absolute path:
+
+```toml
+model_catalog_json = "/path/to/models-config-controlled.json"
+```
+
+With that catalog, `[features] multi_agent = true` and `multi_agent_v2 = false` keeps multi-agent on v1. To test v2 for a session, enable `multi_agent_v2` and set a non-conflicting namespace such as `features.multi_agent_v2.tool_namespace = "agents"`; remove or omit `agents.max_threads` first, because Codex rejects that setting when the v2 feature is enabled.
+
+Codex reads `model_catalog_json` at startup, so restart Codex after editing the catalog or changing the configured path.
 
 Create a profile config in `~/.codex/<profile>.config.toml`:
 
