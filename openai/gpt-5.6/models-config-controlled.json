@@ -99,7 +99,7 @@
         "self_serve_business_usage_based",
         "team"
       ],
-      "supports_search_tool": true,
+      "supports_search_tool": false,
       "default_service_tier": null,
       "service_tiers": [
         {
@@ -211,7 +211,7 @@
         "self_serve_business_usage_based",
         "team"
       ],
-      "supports_search_tool": true,
+      "supports_search_tool": false,
       "default_service_tier": null,
       "service_tiers": [
         {
@@ -319,7 +319,7 @@
         "self_serve_business_usage_based",
         "team"
       ],
-      "supports_search_tool": true,
+      "supports_search_tool": false,
       "default_service_tier": null,
       "service_tiers": [
         {

@@ -89,7 +89,7 @@ Example profile files:
 
 ### Model catalog overrides
 
-`openai/gpt-5.6/models-config-controlled.json` is the single custom model catalog for local GPT-5.6 testing. It preserves the upstream model entries while clearing `tool_mode` and `multi_agent_version` selectors so Codex falls back to local feature config for Code Mode and v1/v2 selection instead of model metadata forcing either mode.
+`openai/gpt-5.6/models-config-controlled.json` is the single custom model catalog for local GPT-5.6 testing. It preserves the upstream model entries while clearing `tool_mode` and `multi_agent_version` selectors so Codex falls back to local feature config for Code Mode and v1/v2 selection instead of model metadata forcing either mode. It also disables `supports_search_tool` for the GPT-5.6 variants because their Responses Lite tool framing does not expose `tool_search` in the current client surface.
 
 Point each Codex home at it with an absolute path:
 
@@ -97,7 +97,7 @@ Point each Codex home at it with an absolute path:
 model_catalog_json = "/path/to/models-config-controlled.json"
 ```
 
-With that catalog, `[features] code_mode = false` and `code_mode_only = false` keeps direct tools such as unified `exec_command` available. `[features] multi_agent = true` and `multi_agent_v2 = false` keeps multi-agent on v1. To test Code Mode or v2 for a session, enable the corresponding feature flags; for v2, also set a non-conflicting namespace such as `features.multi_agent_v2.tool_namespace = "agents"` and remove or omit `agents.max_threads` first, because Codex rejects that setting when the v2 feature is enabled.
+With that catalog, `[features] code_mode = false` and `code_mode_only = false` keeps direct tools such as unified `exec_command` available. `[features] multi_agent = true` and `multi_agent_v2 = false` keeps multi-agent on v1 and exposes the v1 agent tools directly instead of deferring them behind unavailable `tool_search`. The tradeoff is that GPT-5.6 cannot use deferred tool discovery while this override is active. To test Code Mode or v2 for a session, enable the corresponding feature flags; for v2, also set a non-conflicting namespace such as `features.multi_agent_v2.tool_namespace = "agents"` and remove or omit `agents.max_threads` first, because Codex rejects that setting when the v2 feature is enabled.
 
 Codex reads `model_catalog_json` at startup, so restart Codex after editing the catalog or changing the configured path.
 
