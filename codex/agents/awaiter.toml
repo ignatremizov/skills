@@ -1,5 +1,5 @@
 model = "gpt-5.3-codex-spark"
-model_instructions_file = "instructions/base-frontier-upstream.md"
+model_instructions_file = "instructions/base-micro-upstream.md"
 model_reasoning_effort = "low"
 background_terminal_max_timeout = 3600000
 name = "awaiter"

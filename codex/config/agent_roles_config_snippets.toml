@@ -23,7 +23,7 @@ description = "Canonical defect deduper and merger"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/audit-deduper.toml"
 
 [agents.coder]
-description = "Coder preset; pass `reasoning_effort` when spawning"
+description = "Coder preset; defaults to medium reasoning and supports per-spawn overrides"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/coder.toml"
 
 [agents.coder_spec]

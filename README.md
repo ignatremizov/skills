@@ -88,11 +88,12 @@ Example profile files:
 - `openai/gpt-5.5/research.md`
 - `openai/gpt-5.5/reporting.md`
 - `openai/gpt-5.5/upstream.md` as the upstream baseline snapshot
+- `openai/gpt-5.6/code.md`, `writing.md`, `research.md`, and `reporting.md` as normalized GPT-5.6 scope profiles
 - `openai/gpt-5.6/sol-upstream.md` and `openai/gpt-5.6/terra-luna-upstream.md` as upstream GPT-5.6 base-instruction snapshots
 
 ### Model catalog overrides
 
-`openai/gpt-5.6/models-config-controlled.json` is the single custom model catalog for local GPT-5.6 testing. It preserves the upstream model entries while clearing `tool_mode` and `multi_agent_version` selectors so Codex falls back to local feature config for Code Mode and v1/v2 selection instead of model metadata forcing either mode. It also disables `supports_search_tool` for the GPT-5.6 variants because their Responses Lite tool framing does not expose `tool_search` in the current client surface.
+`openai/gpt-5.6/models-config-controlled.json` is the single custom model catalog for local GPT-5.6 testing. It preserves the 372K default context window while allowing explicit overrides up to the models' 1M maximum. It also clears `tool_mode` and `multi_agent_version` selectors so Codex falls back to local feature config for Code Mode and v1/v2 selection instead of model metadata forcing either mode, and disables `supports_search_tool` because the GPT-5.6 Responses Lite tool framing does not expose `tool_search` in the current client surface.
 
 Point each Codex home at it with an absolute path:
 
@@ -107,8 +108,8 @@ Codex reads `model_catalog_json` at startup, so restart Codex after editing the 
 Create a profile config in `~/.codex/<profile>.config.toml`:
 
 ```toml
-model = "gpt-5.5"
-model_instructions_file = "/Users/iremizov/code/skills/openai/gpt-5.5/code.md"
+model = "gpt-5.6-sol"
+model_instructions_file = "/Users/iremizov/code/skills/openai/gpt-5.6/code.md"
 ```
 
 Then launch Codex with that profile:
@@ -121,8 +122,8 @@ Repeat the same pattern for other profiles:
 
 ```toml
 # ~/.codex/writing.config.toml
-model = "gpt-5.5"
-model_instructions_file = "/Users/iremizov/code/skills/openai/gpt-5.5/writing.md"
+model = "gpt-5.6-sol"
+model_instructions_file = "/Users/iremizov/code/skills/openai/gpt-5.6/writing.md"
 ```
 
 ```sh
@@ -152,6 +153,10 @@ Notes:
 ## Codex agent config
 
 For custom agent roles, prefer pointing `~/.codex/config.toml` directly at the source manifests in your checkout rather than generated copies.
+
+The named roles use GPT-5.6 Sol for synthesis, supervision, exhaustive review, and high-consequence correctness work; GPT-5.6 Luna for bounded hardening, QA, cleanup, checklist, and exploration work; and Spark only for explicitly latency-oriented roles. Terra is intentionally left available for per-spawn experiments rather than assigned to a named role. No child role defaults to `ultra`: use `max` for frontier single-agent work and reserve `ultra` for explicit multi-agent v2 experiments. Long-horizon Sol roles opt into a 1M context window while other roles retain the catalog's 372K default. Sol and Luna roles share `openai/gpt-5.6/code.md` as their human-maintained base instructions, with role-specific behavior layered through each manifest's `developer_instructions`.
+
+The spawned supervisor manifests (`athena_supervisor`, `audit_supervisor`, `supervisor_hardening`, `supervisor_review_loop`, and `ghc_review_supervisor`) are retained as an untested idea for nested supervisor-of-supervisors flows. They are not the established default workflow and should not be registered merely because they exist. The currently used pattern is to explicitly invoke the corresponding portable skill in the main session, promote that session into the supervisor role, and have it directly coordinate coder, reviewer, explorer, and awaiter children. Use a spawned supervisor preset only for a deliberate experiment where the root session delegates an entire supervisory stream and the extra orchestration layer can be observed and justified.
 
 Example:
 
@@ -220,11 +225,9 @@ To also refresh `~/.codex/skills/`, use:
 ./update-skills.sh --codex
 ```
 
-For Codex agent prompts whose `developer_instructions` are intentionally derived from skill text, refresh them with:
+`codex/scripts/sync_agent_prompts.py` is a legacy migration helper from before durable named agent-role instructions were available. Its role-to-skill mappings and generated prompt bodies are stale relative to the current manifests. Do not use it as a consistency check or run it across the current agent inventory without first reviewing and redesigning those mappings.
 
-```sh
-python3 codex/scripts/sync_agent_prompts.py
-```
+Portable skills can still be used to promote or lens an existing session when that is useful, especially for supervisor workflows, but they are not automatically the source of truth for the corresponding named agent manifest.
 
 ### Portable (`skills/`)
 
