@@ -18,7 +18,7 @@ For orchestration-heavy work where the supervisor must coordinate multiple worke
 
 - Prefer `$spec-kit-skill` for complex multi-step feature development.
 - Spawn agents for delegated execution or ad-hoc sub-agent tasks as needed.
-- Always use `spawn_agent(..., fork_turns="none")` for delegated agents.
+- Spawn delegated agents without parent context: use `fork_context=false` when the active `spawn_agent` schema is multi-agent V1, or `fork_turns="none"` when it is V2.
 - Keep scope strict to active requirements/tasks.
 - Require concrete evidence before marking tasks complete.
 

@@ -91,7 +91,7 @@ Pair that loop with `ghc` discipline:
 - Refresh `ghc` data before planning and before final unresolved-count verification.
 - Do not try to recreate the `ghc` cache in hook state; store only supervisor checkpoint state and blocking workflow decisions.
 - Treat remote `ghc` refresh as supervisor-owned coordination work, not default coder work.
-- Always spawn delegated agents with `fork_turns="none"`.
+- Spawn delegated agents without parent context: use `fork_context=false` when the active `spawn_agent` schema is multi-agent V1, or `fork_turns="none"` when it is V2.
 - Keep each stream branch-owned or otherwise ownership-clean.
 - Reviewers must avoid nits and optional refactors.
 - Require concrete file-level evidence for findings.
@@ -134,7 +134,7 @@ Pair that loop with `ghc` discipline:
 Include:
 
 - `agent_type`: `coder_pr`
-- `fork_turns="none"`
+- no-context fork option for the active schema: `fork_context=false` for multi-agent V1 or `fork_turns="none"` for V2
 - exact review-thread IDs owned
 - PR reference (`owner/repo #number`) and branch
 - allowed file paths
@@ -149,7 +149,7 @@ Include:
 Include:
 
 - `agent_type`: `reviewer`
-- `fork_turns="none"`
+- no-context fork option for the active schema: `fork_context=false` for multi-agent V1 or `fork_turns="none"` for V2
 - PR reference (`owner/repo #number`) and branch
 - exact scope files
 - exact review-thread IDs under review
@@ -173,7 +173,9 @@ Example:
 ```text
 spawn_agent({
   agent_type: "coder_pr",
-  fork_turns: "none",
+  # Multi-agent V1: use fork_context: false.
+  # Multi-agent V2: replace it with fork_turns: "none".
+  fork_context: false,
   message: "
   Review-thread IDs owned:
   - PRRT_kwDOL1KxKs6MTE7x
@@ -200,7 +202,9 @@ wait_agent({
 
 spawn_agent({
   agent_type: "reviewer",
-  fork_turns: "none",
+  # Multi-agent V1: use fork_context: false.
+  # Multi-agent V2: replace it with fork_turns: "none".
+  fork_context: false,
   message: "
   PR: example-org/example-service #664
   Branch: fix/account-linking-review
@@ -240,7 +244,7 @@ wait_agent({
   targets: [coder_stream],
   timeout_ms: 600000
 })
-# Then spawn a fresh reviewer on the updated patch set with `fork_turns: "none"`.
+# Then spawn a fresh reviewer on the updated patch set with the active schema's no-context fork option.
 ```
 
 The important part is the handoff payload:

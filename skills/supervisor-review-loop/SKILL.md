@@ -84,7 +84,7 @@ Default worker selection:
 - Keep scope to active `spec.md`, `tasks.md`, and active contracts only.
 - Do not pull deferred hardening or future-phase scope into the stream.
 - Demand DRY/KISS and architecture consistency.
-- Always spawn delegated agents with `fork_turns="none"`.
+- Spawn delegated agents without parent context: use `fork_context=false` when the active `spawn_agent` schema is multi-agent V1, or `fork_turns="none"` when it is V2.
 - Reviewers must avoid nits and optional refactors.
 - Require concrete file-level evidence for findings.
 - For race/TOCTOU findings, require the reviewer to name the concrete competing writer, prove its mutation is allowed from the relevant state, and map a reachable interleaving where the conflicting operations lack a shared serialization boundary. For TOCTOU, transactions need not overlap: the writer may commit after the check and before the stale result is used. A timing window without this concrete path is not sufficient evidence.
@@ -128,7 +128,7 @@ Include:
 
 - `agent_type`: usually `coder_spec`, with `model` / `reasoning_effort` overrides as needed
 - if needed, use `coder` or `coder_xhigh` for non-spec-based work
-- `fork_turns="none"`
+- no-context fork option for the active schema: `fork_context=false` for multi-agent V1 or `fork_turns="none"` for V2
 - owned task IDs
 - allowed file paths
 - spec/contract paths
@@ -145,7 +145,7 @@ Include:
 Include:
 
 - `agent_type`: `reviewer`
-- `fork_turns="none"`
+- no-context fork option for the active schema: `fork_context=false` for multi-agent V1 or `fork_turns="none"` for V2
 - exact scope files
 - exact task IDs under review
 - work-specific review scope and constraints only
@@ -170,7 +170,9 @@ Example:
 ```text
 spawn_agent({
   agent_type: "coder_spec",
-  fork_turns: "none",
+  # Multi-agent V1: use fork_context: false.
+  # Multi-agent V2: replace it with fork_turns: "none".
+  fork_context: false,
   message: "
   Owned task IDs: T12, T13
   Allowed files:
@@ -193,7 +195,9 @@ wait_agent({
 
 spawn_agent({
   agent_type: "reviewer",
-  fork_turns: "none",
+  # Multi-agent V1: use fork_context: false.
+  # Multi-agent V2: replace it with fork_turns: "none".
+  fork_context: false,
   message: "
   Scope files:
   - internal/profile/service.go
@@ -230,7 +234,7 @@ wait_agent({
   targets: [coder_stream],
   timeout_ms: 600000
 })
-# Then spawn a fresh reviewer on the updated patch set with `fork_turns: "none"`.
+# Then spawn a fresh reviewer on the updated patch set with the active schema's no-context fork option.
 ```
 
 The important part is the handoff payload:

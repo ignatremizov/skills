@@ -26,7 +26,7 @@ Drive branch-owned fix streams through coder-plus-reviewer loops:
 ## Operating Rules
 
 - Keep scope to owned review threads and required validation only.
-- Always spawn delegated agents with `fork_turns="none"`.
+- Spawn delegated agents without parent context: use `fork_context=false` when the active `spawn_agent` schema is multi-agent V1, or `fork_turns="none"` when it is V2.
 - When hook-based lifecycle enforcement is in use, maintain per-session state with `python3 ~/code/skills/codex/scripts/write-ghc-review-state.py ...`.
 - Treat hook state as a supervisor completion ledger, not a mirror of the `ghc` cache; store checkpoints and blocking obligations, not full thread payloads.
 - Reserve reviewer capacity for churn on the critical path.

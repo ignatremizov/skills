@@ -93,7 +93,13 @@ Example profile files:
 
 ### Model catalog overrides
 
-`openai/gpt-5.6/models-config-controlled.json` is the single custom model catalog for local GPT-5.6 testing. It preserves the 372K default context window while allowing explicit overrides up to the models' 1M maximum. It also clears `tool_mode` and `multi_agent_version` selectors so Codex falls back to local feature config for Code Mode and v1/v2 selection instead of model metadata forcing either mode, and disables `supports_search_tool` because the GPT-5.6 Responses Lite tool framing does not expose `tool_search` in the current client surface.
+`openai/gpt-5.6/models-config-controlled.json` is the single custom model catalog for local GPT-5.6 testing. It preserves the 372K default context window while allowing explicit overrides up to the models' 1M maximum. It also clears `tool_mode` and `multi_agent_version` selectors so Codex falls back to local feature config for Code Mode and v1/v2 selection instead of model metadata forcing either mode.
+
+The controlled GPT-5.6 entries deliberately set `supports_search_tool = false`. The local Codex fork can route Responses Lite multi-agent v1 tools through deferred `tool_search`, but the upstream client still needs an equivalent routing fix. This environment has a small, stable tool surface, so exposing those tools directly avoids repeated discovery calls for the same set of roughly a dozen tools. Users running a client with the routing fix and a large or dynamic tool inventory can set `supports_search_tool = true` for Sol, Terra, and Luna to restore deferred tool discovery.
+
+The catalog defaults Sol to `low` reasoning and Terra/Luna to `medium`; root config, profile config, and named agent manifests can override those values. When migrating a profile, preserve its old effective reasoning effort explicitly for the baseline instead of silently accepting a new catalog default. `model_verbosity` is separate: it controls response detail and expected output length, not reasoning effort. Higher verbosity can still increase output-token usage and cost.
+
+All three GPT-5.6 models apply long-context pricing to requests above 272K input tokens: 2x input and 1.5x output pricing applies to the full request. The 372K default and 1M role overrides can both cross that threshold, so use long contexts deliberately and compact before the threshold when the retained history is not worth the added cost. Verify current limits and pricing against the live [GPT-5.6 model guidance](https://developers.openai.com/api/docs/guides/model-guidance?model=gpt-5.6).
 
 Point each Codex home at it with an absolute path:
 
@@ -101,7 +107,7 @@ Point each Codex home at it with an absolute path:
 model_catalog_json = "/path/to/models-config-controlled.json"
 ```
 
-With that catalog, `[features] code_mode = false` and `code_mode_only = false` keeps direct tools such as unified `exec_command` available. `[features] multi_agent = true` and `multi_agent_v2 = false` keeps multi-agent on v1 and exposes the v1 agent tools directly instead of deferring them behind unavailable `tool_search`. The tradeoff is that GPT-5.6 cannot use deferred tool discovery while this override is active. To test Code Mode or v2 for a session, enable the corresponding feature flags; for v2, also set a non-conflicting namespace such as `features.multi_agent_v2.tool_namespace = "agents"` and remove or omit `agents.max_threads` first, because Codex rejects that setting when the v2 feature is enabled.
+With that catalog, `[features] code_mode = false` and `code_mode_only = false` keeps direct tools such as unified `exec_command` available. `[features] multi_agent = true` and `multi_agent_v2 = false` keeps multi-agent on v1 and exposes the v1 agent tools directly. To test deferred discovery on a client with the Responses Lite v1 routing fix, set `supports_search_tool = true` for the GPT-5.6 entries and restart Codex. To test Code Mode or v2 for a session, enable the corresponding feature flags; for v2, also set a non-conflicting namespace such as `features.multi_agent_v2.tool_namespace = "agents"` and remove or omit `agents.max_threads` first, because Codex rejects that setting when the v2 feature is enabled.
 
 Codex reads `model_catalog_json` at startup, so restart Codex after editing the catalog or changing the configured path.
 
@@ -110,6 +116,8 @@ Create a profile config in `~/.codex/<profile>.config.toml`:
 ```toml
 model = "gpt-5.6-sol"
 model_instructions_file = "/Users/iremizov/code/skills/openai/gpt-5.6/code.md"
+# Preserve the old profile's effective effort for the first GPT-5.6 baseline.
+model_reasoning_effort = "medium"
 ```
 
 Then launch Codex with that profile:
@@ -124,6 +132,8 @@ Repeat the same pattern for other profiles:
 # ~/.codex/writing.config.toml
 model = "gpt-5.6-sol"
 model_instructions_file = "/Users/iremizov/code/skills/openai/gpt-5.6/writing.md"
+# Preserve the old profile's effective effort for the first GPT-5.6 baseline.
+model_reasoning_effort = "medium"
 ```
 
 ```sh

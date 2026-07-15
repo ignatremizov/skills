@@ -16,37 +16,7 @@ It is for turning a mostly-working change into a review-hardened change by:
 
 ## Optional Hooks
 
-You can pair this supervisor loop with the `supervisor-hardening` Codex hook set.
-
-The hook bundle is meant to:
-
-- inject hardening-loop context on session start
-- block completion until quality-gate has run
-- block completion if a must-close-now follow-up hardening area is still required
-- block completion if reviewer-loop closure is still pending for any hardening stream
-
-If you want to manage that hook bundle, use `$codex-hooks` and select the `supervisor-hardening` hook set.
-
-### Hook Setup and Use
-
-Use hooks only for the supervisor session, not for spawned hardening coders or reviewers.
-
-1. Identify the target worktree root for this supervised stream.
-   - example: `WORKTREE_ROOT=/path/to/target-worktree`
-2. Install the `supervisor-hardening` hook bundle in that worktree before starting or resuming the supervisor session.
-   - `~/code/skills/codex/scripts/install-codex-hooks.sh --hook-set supervisor-hardening --root "$WORKTREE_ROOT"`
-3. Start or resume the supervisor session in that worktree so the hook registration is loaded.
-4. Write session state for that supervisor session with:
-   - `python3 ~/code/skills/codex/scripts/write-flow-state.py --root "$WORKTREE_ROOT" --transcript-path "$TRANSCRIPT_PATH" --mode supervisor-hardening ...`
-5. Update that state as the loop advances:
-   - add and clear pending review-loop-closure streams
-   - record must-close reviewer findings while they are still open
-   - record deferred reviewer or quality-gate follow-up items for the current defer decision before concluding on `defer_to_followup_spec`
-   - record quality-gate results
-   - record whether a quality-gate recommendation is `must_close_now` or `defer_to_followup_spec`
-   - mark the previous gate stale after later hardening streams change the patch
-   - keep the pending review-loop and quality-gate state accurate so the stop gate reflects the latest session status
-6. Do not write hardening hook state from child coder, reviewer, or quality-gate sessions. The installed hooks can exist in the same worktree, but only the supervisor session should have matching per-session state.
+If the user requests, you can pair this loop with the `supervisor-hardening` Codex hook set. Use `$codex-hooks` to manage it, and read [references/hook-setup.md](references/hook-setup.md) before installing or updating supervisor session state. Do not load that reference when hooks are not in use.
 
 ## When to Use
 
@@ -112,7 +82,7 @@ After the blind-spot and any triggered adversarial reviewer are closed, run one 
 - This is post-coder hardening, not a second feature implementation pass.
 - Do not reopen deferred product scope.
 - Choose the fewest hardening agents that materially reduce PR risk.
-- Always spawn delegated agents with `fork_turns="none"`.
+- Spawn delegated agents without parent context: use `fork_context=false` when the active `spawn_agent` schema is multi-agent V1, or `fork_turns="none"` when it is V2.
 - Do not run overlapping hardening agents on the same hot files in parallel unless one is explicitly scoped to a disjoint concern.
 - Require evidence-oriented outputs: files changed, tests run, invariants checked.
 - Reviewer remains focused on actionable findings; do not let the review loop degrade into style commentary.
@@ -261,29 +231,29 @@ Rationale:
 
 The current hardening coders split into:
 
-- xhigh-reasoning:
+- max-reasoning:
   - `coder-hardening-layer-boundary`
 - high-reasoning:
+  - `coder-hardening-contract`
   - `coder-hardening-schema`
-  - `coder-hardening-auth`
   - `coder-hardening-idempotency`
   - `coder-hardening-query`
-  - `coder-hardening-money`
-  - `coder-hardening-operability`
-- medium-reasoning:
-  - `coder-hardening-contract`
-  - `coder-hardening-docs`
-  - `coder-hardening-source-of-truth`
-  - `coder-hardening-tests`
+  - `coder-hardening-auth`
   - `coder-hardening-async-ui`
   - `coder-hardening-a11y`
+  - `coder-hardening-source-of-truth`
+  - `coder-hardening-money`
+  - `coder-hardening-operability`
+  - `coder-hardening-tests`
+- medium-reasoning:
+  - `coder-hardening-docs`
 
 Selection rule:
 
-- run `coder-hardening-layer-boundary` at xhigh when helper placement, provider/transport persistence ownership, dead helper churn, broad shared utility extraction, or misplaced normalization is a material review risk
-- if both a high-reasoning and medium-reasoning area are triggered, default to the highest-risk high-reasoning stream first
-- only skip a triggered high-reasoning area when the diff is clearly bounded away from that concern
-- once high-risk semantic hardening is green, run the medium-reasoning hardening streams that depend on the stabilized shape
+- run `coder-hardening-layer-boundary` at its configured max effort when helper placement, provider/transport persistence ownership, dead helper churn, broad shared utility extraction, or misplaced normalization is a material review risk
+- select streams by concrete risk and dependency order; the named role carries its tested model, effort, and verbosity configuration
+- do not override a role's model or effort unless the user or applicable agent instructions explicitly require it
+- once high-risk semantic hardening is green, run dependent documentation or proof streams against the stabilized shape
 
 ## Reviewer Additional Instructions by Area
 
@@ -542,7 +512,9 @@ Example:
 ```text
 spawn_agent({
   agent_type: "coder_hardening_query",
-  fork_turns: "none",
+  # Multi-agent V1: use fork_context: false.
+  # Multi-agent V2: replace it with fork_turns: "none".
+  fork_context: false,
   message: "
   Hardening area owned: query
   Allowed files:
@@ -565,7 +537,9 @@ wait_agent({
 
 spawn_agent({
   agent_type: "reviewer",
-  fork_turns: "none",
+  # Multi-agent V1: use fork_context: false.
+  # Multi-agent V2: replace it with fork_turns: "none".
+  fork_context: false,
   message: "
   Scope files:
   - internal/workflow/repository.go
@@ -603,11 +577,13 @@ wait_agent({
   targets: [query_stream],
   timeout_ms: 600000
 })
-# Then spawn a fresh reviewer for the updated query slice with `fork_turns: "none"`.
+# Then spawn a fresh reviewer for the updated query slice with the active schema's no-context fork option.
 
 spawn_agent({
   agent_type: "quality_gate_hardening",
-  fork_turns: "none",
+  # Multi-agent V1: use fork_context: false.
+  # Multi-agent V2: replace it with fork_turns: "none".
+  fork_context: false,
   message: "
   Changed files:
   - internal/workflow/repository.go

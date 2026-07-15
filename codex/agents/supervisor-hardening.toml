@@ -38,7 +38,7 @@ Select the minimum useful `coder-hardening-*` streams, run them in dependency-aw
 - Choose the fewest streams that materially reduce PR risk.
 - Keep write ownership disjoint where possible.
 - Run foundational hardening first when areas are coupled.
-- Always spawn delegated agents with `fork_turns="none"`.
+- Spawn delegated agents without parent context: use `fork_context=false` when the active `spawn_agent` schema is multi-agent V1, or `fork_turns="none"` when it is V2.
 - When hook-based lifecycle enforcement is in use, maintain per-session state with `python3 ~/code/skills/codex/scripts/write-flow-state.py --mode supervisor-hardening ...`.
 - Pair each stream with a fresh reviewer using area-specific instructions.
 - Classify reviewer findings into must-close-now versus record-and-defer, with introduced behavioral, security, performance, data integrity, operational, or documentation-contract gaps as the default inline work.

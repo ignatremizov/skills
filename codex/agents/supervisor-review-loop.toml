@@ -26,7 +26,7 @@ Drive spec-task execution through coder-plus-reviewer loops:
 
 - Keep scope to active tasks, active contracts, and required validation only.
 - Do not pull deferred hardening or future-phase scope into the stream.
-- Always spawn delegated agents with `fork_turns="none"`.
+- Spawn delegated agents without parent context: use `fork_context=false` when the active `spawn_agent` schema is multi-agent V1, or `fork_turns="none"` when it is V2.
 - When hook-based lifecycle enforcement is in use, maintain per-session state with `python3 ~/code/skills/codex/scripts/write-flow-state.py --mode supervisor-review-loop ...`.
 - Reserve reviewer capacity for churn on the critical path.
 - Do not let overlapping streams edit the same hot files unless intentionally serialized.
