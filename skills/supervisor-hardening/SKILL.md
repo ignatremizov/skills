@@ -119,6 +119,10 @@ After the blind-spot and any triggered adversarial reviewer are closed, run one 
 - Blind-spot reviewer must be unlensed: do not pass area-specific instructions, selected hardening areas, or reviewer findings unless needed to avoid duplicate reporting.
 - Adversarial reviewer is not mandatory for ordinary refactors, docs-only changes, or low-risk schema cleanup; when skipped, record why no trigger surface was present.
 - Quality-gate agent may recommend another inline hardening stream only when current PR risk still has a must-close-now gap; otherwise it should defer the idea into follow-up spec work.
+- Before schema, operability, or tests hardening, record the actual deployment context: topology and writer count, traffic/data volume, whether the feature has production data, whether a maintenance stop is allowed, the migration runner, and the rollback/recovery procedure.
+- Require every rollout safeguard to name a reachable failure mode and explain why existing Git, migration, stop/start, health, metrics, or provisioning controls do not already cover it.
+- For a controlled single-writer deployment with a maintenance window, prefer stop writers, run the normal migration, verify startup, and restart consumers. Do not invent checksum manifests, exact catalog/deparser hashes, cluster/session attestations, bespoke cutover frameworks, duplicated observability contracts, or validator-of-validator suites for speculative future scale.
+- Do not use low scale to weaken required money, ledger, authorization, privacy, idempotency, or data-integrity correctness. Proportionality removes ceremonial controls, not domain invariants.
 
 ## Hardening Areas and Agent Mapping
 
@@ -295,11 +299,17 @@ Use the base `reviewer` profile, but add one or more area-specific instructions.
 
 - check only migration/snapshot/DAO parity and rollout safety
 - treat fake-schema tests that hide production behavior as actionable
+- calibrate rollout findings to the actual topology, data, maintenance window, and migration runner; reject speculative online/multi-cluster controls
+- prefer focused Postgres behavior tests over adjacent checksums, exact catalog hashes, or bespoke post-migration attestations
 
 ### Idempotency
 
 - check only transaction, replay, retry, dedupe, and terminal-state risks
 - treat non-deterministic ordering/keys as actionable
+- for race or TOCTOU findings, require the reviewer to identify the concrete competing writer, prove its mutation is allowed from the relevant source state, and map a reachable interleaving where the conflicting operations lack a shared serialization boundary; for TOCTOU, transactions need not overlap because the writer may commit after the check and before the stale result is used
+- reject timing-only race concerns based on process-restart environment flags, deployment-owned operationally immutable configuration, backend-forbidden state transitions, or hypothetical direct database writes unless the active contract exposes a reachable mutation path
+- prefer enforcing and testing the invariant at the owning mutation boundary over adding duplicate downstream rereads, locks, snapshots, or fences
+- when operational immutability or a forbidden transition is material to the conclusion, require it to be documented at the owning code/spec/technical boundary so later reviewers can validate the assumption
 
 ### Query
 
@@ -342,6 +352,8 @@ Use the base `reviewer` profile, but add one or more area-specific instructions.
 - check only logging, metrics, diagnostics, PII exposure in operational surfaces, rate limits, provider liveness, and manual recovery visibility
 - treat misleading logs, indistinguishable adjacent failure diagnostics, unsafe debug defaults, unbounded costly side effects, and invisible safe-stuck states as actionable
 - include developer-facing hook/script output when a PR changes validation progress, silence/verbosity, or failure behavior
+- distinguish static file consistency from runtime proof; do not duplicate full dashboard expressions, alert counts, metric lists, or runbook prose into custom validators
+- require operational machinery to mitigate a reachable current failure mode and remain simpler than the failure/recovery procedure it protects
 
 ### Docs
 
@@ -353,6 +365,8 @@ Use the base `reviewer` profile, but add one or more area-specific instructions.
 
 - check only regression proof, harness parity, fixture isolation, cleanup, and assertion quality
 - treat missing invariant coverage, fake-schema/test-harness drift, shell/hook parsing drift, and cleanup/isolation gaps as actionable only when the repo's actual harness does not already cover them
+- reject tests of validators that merely restate migrations, platform behavior, provisioned text, or documentation wording
+- prefer tests of application-owned trigger semantics, transaction behavior, listener recovery, metric emission, and provisioning load
 
 ## Execution Protocol
 
@@ -400,6 +414,7 @@ Use the base `reviewer` profile, but add one or more area-specific instructions.
    - If not triggered, record the skip rationale.
    - If triggered, spawn `reviewer_exhaustive` by default; use `reviewer` only for tiny targeted changes.
    - Prompt it as an adversarial abuse/bypass/race/cost sweep, not as another taxonomy review.
+   - Require race findings to name the reachable competing writer and allowed transition; reject timing-only scenarios that assume impossible state changes, restart-only configuration drift, or direct database compromise without a concrete trust-boundary failure.
    - Route must-close findings back into the smallest owning hardening stream, then rerun that stream's area reviewer, a blind-spot reviewer, and another adversarial reviewer before quality gate.
    - Record non-blocking adversarial findings as deferred follow-up with rationale.
 

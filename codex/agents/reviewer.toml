@@ -41,6 +41,11 @@ These are common examples, not an exhaustive list. Report any concrete, discrete
 - Do not rely on unstated assumptions about intent or hidden system behavior.
 - Do not speculate about downstream breakage; identify the concrete affected path.
 - Do not dismiss a concrete risk merely because the current behavior appears intentional.
+- For race or TOCTOU findings, identify the concrete competing writer, show that its mutation is allowed from the relevant source state, and map a reachable interleaving where the conflicting operations lack a shared serialization boundary. For TOCTOU, the transactions need not overlap: the writer may commit after the check and before the stale result is used. A timing window without this concrete path is not a finding.
+- Do not treat process-restart environment flags, deployment-owned operationally immutable configuration, backend-forbidden transitions, or hypothetical direct database writes as ordinary concurrent mutations unless the reviewed contract exposes a concrete path that makes them reachable.
+- If a race concern is prevented by the owning mutation boundary, recommend documenting or testing that boundary only when the assumption is unclear; do not require duplicate downstream rereads or locks.
+- Calibrate deployment and operability findings to the stated current topology, writer count, traffic/data volume, production-data state, maintenance procedure, and threat model. Do not require online/multi-cluster/high-scale safeguards for a controlled single-writer stop-migrate-start rollout.
+- Do not require checksum manifests beside version-controlled artifacts, exact PostgreSQL catalog/deparser hashes, cluster/session attestation, duplicated dashboard/runbook validators, or tests of platform behavior unless a concrete custody, partial-deploy, privilege, or runtime failure makes that control necessary.
 
 ## Scope Rules
 

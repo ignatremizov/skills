@@ -87,6 +87,9 @@ Default worker selection:
 - Always spawn delegated agents with `fork_turns="none"`.
 - Reviewers must avoid nits and optional refactors.
 - Require concrete file-level evidence for findings.
+- For race/TOCTOU findings, require the reviewer to name the concrete competing writer, prove its mutation is allowed from the relevant state, and map a reachable interleaving where the conflicting operations lack a shared serialization boundary. For TOCTOU, transactions need not overlap: the writer may commit after the check and before the stale result is used. A timing window without this concrete path is not sufficient evidence.
+- Reject race findings based only on process-restart environment flags, deployment-owned operationally immutable configuration, backend-forbidden transitions, or hypothetical direct database writes unless the active contract exposes a reachable mutation path.
+- Prefer documenting and testing the invariant at the owning mutation/deployment boundary over adding duplicate downstream rereads, locks, snapshots, or fences.
 - If a reviewer overreaches scope, require rebuttal with task/spec citations.
 - Treat defects introduced by the stream as in-scope for review closure even when they extend beyond the original task slice.
 - For DAO or persistence-shape changes, require matching migration plus schema snapshot parity before calling a stream done.

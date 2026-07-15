@@ -34,6 +34,8 @@ Harden only:
 - provider quote, preview, webhook, notification, or retry flows without rate limits, cooldowns, alerting, or visible terminal/manual-recovery states when abuse or cost is realistic
 - fail-closed states that protect money or compliance but become invisible operational debt
 - alerts or metrics keyed to the wrong status so operators cannot distinguish safe-stuck from ordinary backlog
+- operational safeguards designed for speculative scale, multi-replica topology, online migration, or artifact custody that the current deployment does not have
+- static validators that duplicate complete dashboard queries, alert counts, metric lists, or runbook prose without exercising the telemetry or provisioning boundary
 
 ## Execution Pattern
 
@@ -43,6 +45,9 @@ Harden only:
 - prefer masking, structured fields, and explicit debug gates over raw free-text output
 - add rate-limit or alerting hooks only when the PR makes abuse, cost, or stuck-state risk concrete
 - defer broad observability redesigns unless current PR behavior would be misleading or unsafe without them
+- establish the current topology, traffic, production-data state, maintenance-window allowance, and operator procedure before adding rollout machinery
+- prefer existing service stop/start, migration, health, metrics, and provisioning controls over bespoke attestations, checksum manifests, or validator suites
+- distinguish static configuration checks from runtime proof: parsing or loading provisioned rules is useful, but duplicated exact-expression constants do not prove VictoriaMetrics, Loki, Grafana, or alert delivery works
 
 ## Testing Standard
 

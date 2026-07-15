@@ -43,6 +43,9 @@ Use this as a sufficiency lens, not a forced output format:
 
 1. Does the implemented behavior satisfy the active task or contract semantics?
 2. Are concurrency and retry paths safe?
+   - For any claimed race/TOCTOU gap, is there a concrete competing writer whose transition is allowed in that state and a reachable interleaving where the conflicting operations lack a shared serialization boundary, including a TOCTOU writer that commits between non-overlapping check and use transactions?
+   - Were restart-only environment flags, deployment-owned immutable configuration, forbidden transitions, or direct database compromise incorrectly used to justify hot-path defensive rereads or fences?
+   - Are material immutability/forbidden-transition assumptions documented and enforced at their owning mutation or deployment boundary instead of duplicated downstream?
 3. Are state transitions valid and replay/idempotency coherent?
 4. Are bypass or exception flows safe and non-corrupting?
 5. Do the cited tests/checks actually prove the claimed behavior?
@@ -67,6 +70,9 @@ Use this as a sufficiency lens, not a forced output format:
 24. If docs, comments, specs, diagrams, generated docs, or examples changed or should change, do they match the final code and explain the relevant invariant without over-documenting obvious code?
 25. If docs are material to the PR, did the docs hardening stream run its three-pass write/review/correction loop or explicitly justify skipping it?
 26. If tests were added or relied on as proof, do they exercise the real invariant under the repo's actual harness, schema, fixtures, cleanup tracking, shell/hook input shape, and assertion failure behavior?
+27. Are rollout, migration, observability, and validation controls proportional to the proven deployment topology, traffic/data volume, feature production history, maintenance-window constraints, and threat model?
+28. Did hardening introduce adjacent checksum manifests, exact catalog/deparser hashes, cluster/session attestations, duplicated dashboard/runbook contracts, or validator-of-validator suites without proving why existing Git, migration, service-stop/start, Postgres integration, health, metrics, or provisioning checks are insufficient?
+29. Does each added safeguard test application-owned behavior or mitigate a reachable failure mode, rather than re-testing the platform, mirroring checked-in text, or preparing for speculative future scale?
 
 ## Required Output Format
 

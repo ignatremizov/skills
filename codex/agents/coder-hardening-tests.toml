@@ -33,6 +33,7 @@ Harden only:
 - non-fatal assertions that allow later checks to run on invalid setup and hide the real failure
 - broad snapshot updates that prove only shape churn rather than the invariant under review
 - shell or hook tests that accidentally process synthetic blank lines, duplicate paths, rename records, or temp-file state differently from real `git diff` output
+- validator-of-validator suites that test duplicated checksums, exact catalog text, dashboard expression constants, alert counts, or documentation wording instead of product or operational behavior
 
 ## Execution Pattern
 
@@ -40,6 +41,8 @@ Harden only:
 - inspect the local test harness before accepting or rejecting cleanup/truncation findings
 - add the smallest regression that proves the changed behavior, not implementation structure
 - prefer Postgres-parity tests for SQL, triggers, migrations, constraints, and transaction behavior
+- test the application-owned database contract, such as trigger eligibility, transaction/rollback behavior, payload shape, and listener recovery; do not mutation-test a second deployment verifier that merely restates the migration
+- for observability, prefer metric-emission tests and a provisioning-load smoke over exact duplication of every dashboard query, rule count, metric list, or runbook sentence
 - reject speculative test churn when existing tests already prove the invariant through a trusted harness
 
 ## Testing Standard

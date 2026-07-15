@@ -35,6 +35,8 @@ Harden only database-related change integrity across:
 - cold-seed reference state confused with historical migration/backfill replay semantics
 - temp table lifetime mistakes in schema/bootstrap scripts that run under autocommit or replayed seed execution
 - tests using fake schema that hides production behavior
+- rollout checks that duplicate migration contents through adjacent checksums, exact catalog/deparser hashes, or bespoke inventory manifests without an external artifact-custody requirement
+- cutover gates designed for online, multi-writer, or high-volume migrations when the actual rollout permits stopping the only writer and has no relevant production data
 
 ## Execution Pattern
 
@@ -42,6 +44,9 @@ Harden only database-related change integrity across:
 - verify migration, schema snapshot, and DAO or repo usage align
 - distinguish cold-start schema seed expectations from already-deployed migration/backfill expectations before accepting ordinal/backfill/reactivation findings
 - check mixed-version, retry, and rollout hazards
+- establish the actual deployment topology, writer count, data volume, feature production history, maintenance-window allowance, migration runner, and rollback path before adding rollout controls
+- prefer the normal migration transaction plus focused Postgres behavior tests; use a small post-migration existence/validity smoke only when it catches a realistic partial-deploy mode
+- do not require exact PostgreSQL deparser hashes, cluster system identifiers, default-ACL identity, adjacent checksum files, or zero-session attestation unless the active deployment or security contract specifically needs them
 - prefer the smallest additive correction
 
 ## Testing Standard

@@ -44,6 +44,9 @@ Drive spec-task execution through coder-plus-reviewer loops:
 - Prefer forwarding the reviewer finding verbatim or as a tightly structured restatement; do not collapse multiple findings into one vague summary.
 - Make the supervisor handoff explicit about which findings are must-fix now, which files are in scope for the fix, and what validation the coder must rerun.
 - Require file-level evidence for findings.
+- For race/TOCTOU findings, require the reviewer to name the concrete competing writer, prove its mutation is allowed from the relevant state, and map a reachable interleaving where the conflicting operations lack a shared serialization boundary. For TOCTOU, transactions need not overlap: the writer may commit after the check and before the stale result is used. A timing window without this concrete path is not sufficient evidence.
+- Reject race findings based only on process-restart environment flags, deployment-owned operationally immutable configuration, backend-forbidden transitions, or hypothetical direct database writes unless the active contract exposes a reachable mutation path.
+- Prefer documenting and testing the invariant at the owning mutation/deployment boundary over adding duplicate downstream rereads, locks, snapshots, or fences.
 - If a reviewer overreaches scope, require rebuttal anchored in task or spec ownership.
 - Reopen stream status whenever the latest reviewer pass surfaces an introduced defect.
 - Reopen stream status for other findings only when the supervisor judges they must be fixed now.

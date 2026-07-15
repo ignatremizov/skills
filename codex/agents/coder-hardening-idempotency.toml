@@ -35,10 +35,14 @@ Harden only:
 - retry or race branches that wrap sentinel errors in a way that breaks `errors.Is` or caller retry/idempotency handling
 - execute-now or manual override paths that bypass retry cadence, delay markers, or durable wait metadata without an explicit invariant/test
 - mixed-version or reimport paths not covered by tests
+- duplicate downstream rereads, locks, snapshots, or fences added for theoretical races without a reachable competing writer
 
 ## Execution Pattern
 
 - trace side effects and state transitions before patching
+- before hardening a race or TOCTOU concern, identify the concrete competing writer, prove its transition is allowed in the relevant state, and map a reachable interleaving where the conflicting operations are not protected by a shared serialization boundary; for TOCTOU, the writer may commit after the check transaction ends and before the stale result is used
+- treat process-restart environment flags, deployment-owned immutable configuration, forbidden state transitions, and direct database compromise as different trust/operational boundaries; do not add hot-path synchronization for them unless the active contract makes them runtime-mutable
+- prefer enforcing and testing the invariant at the mutation authority over duplicating validation immediately before every consumer or provider call
 - move checks inside deterministic or transactional boundaries where needed
 - preserve transaction handles and lock clauses when passing repository query builders through helpers
 - prefer explicit terminal handling for partial failures
@@ -49,6 +53,7 @@ Harden only:
 - add focused regression coverage for retry, replay, reimport, or mixed-version paths
 - prefer deterministic tests that prove no duplicate or corrupt side effects
 - report remaining concurrency assumptions explicitly
+- document material operational immutability or forbidden-transition assumptions at their owning boundary so later reviewers can validate rather than rediscover them
 
 ## Handoff Contract
 
