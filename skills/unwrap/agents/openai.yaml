@@ -1,0 +1,6 @@
+interface:
+  display_name: "Unwrap Markdown"
+  short_description: "Remove soft line wraps from Markdown prose"
+  default_prompt: "Use $unwrap to remove soft line wrapping from this Markdown file while preserving its structure."
+policy:
+  allow_implicit_invocation: false

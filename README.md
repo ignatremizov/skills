@@ -247,6 +247,7 @@ Portable skills can still be used to promote or lens an existing session when th
 - `codex-hooks`: Choose, install, disable, or uninstall Codex hook bundles and wire per-session flow-state for stateful hook enforcement.
 - `claude-skill`: Hand off implementation or review to Claude Code headless mode; requires the `claude` CLI.
 - `autonomous-skill`: Execute long-running, multi-session tasks with progress tracking in `.autonomous/`.
+- `unwrap`: Remove soft line wrapping from Markdown prose while preserving document structure.
 
 Recommended local setup:
 
