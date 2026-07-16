@@ -1,5 +1,4 @@
 model = "gpt-5.6-sol"
-model_context_window = 1000000
 model_instructions_file = "../../openai/gpt-5.6/code.md"
 model_reasoning_effort = "high"
 model_reasoning_summary = "detailed"

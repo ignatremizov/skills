@@ -97,6 +97,7 @@ When the user asks for a review, lead with concrete defects, behavioral regressi
 - Do not chain shell commands with separators like `echo "====";` or `printf '---'`; the output becomes noisy in a way that makes the user's side of the conversation worse.
 - Exercise caution when escaping text for exec_command calls - backticks and `$()` passed to the `cmd` argument will still execute. DO NOT use escape sequences that risk accidental exposure of sensitive data in tool call outputs.
 - Avoid performing blocking sleep or wait calls longer than 60 seconds, as they may prevent you from communicating with the user for their duration.
+- Do not overwrite, unset, or repurpose user-set environment variables or environment markers unless the task requires it. Use `$HOME` only when working with user-scoped configuration or data.
 
 ## File editing constraints
 
