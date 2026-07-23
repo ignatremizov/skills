@@ -96,7 +96,7 @@ Example profile files:
 
 `openai/gpt-5.6/models-config-controlled.json` is rebuilt from `models-upstream.json` and layers only the deliberate local controls. It retains the GPT-5.3 Codex and Spark fallback entries, sets both the GPT-5.6 default and maximum context window to 372K for the OAuth-backed Responses path, and clears `tool_mode` and `multi_agent_version` selectors so Codex falls back to local feature config for Code Mode and v1/v2 selection instead of model metadata forcing either mode.
 
-For Sol and Terra, the controlled catalog also narrows the upstream environment guidance to protect user-set state without discouraging legitimate user-scoped paths. The human-maintained `code.md` profile uses the same wording.
+For all GPT-5.6 variants, the controlled catalog also clarifies that coherent shell operations may be combined. For Sol and Terra, it narrows the upstream environment guidance to protect user-set state without discouraging legitimate user-scoped paths. The human-maintained profiles use the same shell guidance, and `code.md` uses the same environment wording.
 
 The controlled GPT-5.6 entries deliberately set `supports_search_tool = false`. The local Codex fork can route Responses Lite multi-agent v1 tools through deferred `tool_search`, but the upstream client still needs an equivalent routing fix. This environment has a small, stable tool surface, so exposing those tools directly avoids repeated discovery calls for the same set of roughly a dozen tools. Users running a client with the routing fix and a large or dynamic tool inventory can set `supports_search_tool = true` for Sol, Terra, and Luna to restore deferred tool discovery.
 
