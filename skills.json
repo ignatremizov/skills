@@ -1,0 +1,33 @@
+{
+  "entries": [
+    {
+      "path": "~/.agents/skills",
+      "exclude": [
+        "^athena$",
+        "^athena-supervisor$",
+        "^audit-supervisor$",
+        "^autonomous-skill$",
+        "^claude-skill$",
+        "^codex-exec$",
+        "^codex-hooks$",
+        "^gh-address-comments$",
+        "^ghc-review-supervisor$",
+        "^guidance$",
+        "^playwright$",
+        "^pumble$",
+        "^spec-kit-analyze-skill$",
+        "^spec-kit-checklist-skill$",
+        "^spec-kit-clarify-skill$",
+        "^spec-kit-constitution-skill$",
+        "^spec-kit-implement-skill$",
+        "^spec-kit-plan-skill$",
+        "^spec-kit-skill$",
+        "^spec-kit-specify-skill$",
+        "^spec-kit-tasks-skill$",
+        "^supervisor-hardening$",
+        "^supervisor-review-loop$",
+        "^unwrap$"
+      ]
+    }
+  ]
+}
