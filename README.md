@@ -180,6 +180,10 @@ Example:
 description = "Default reviewer preset"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/reviewer.toml"
 
+[agents.reviewer_check]
+description = "Fast checklist-gate reviewer preset"
+config_file = "<SKILLS_CHECKOUT>/codex/agents/reviewer-check.toml"
+
 [agents.reviewer_exhaustive]
 description = "Optional high-recall reviewer preset for final sweeps"
 config_file = "<SKILLS_CHECKOUT>/codex/agents/reviewer-exhaustive.toml"

@@ -57,6 +57,7 @@ Use hooks only for the supervisor session, not for spawned coders or reviewers.
 Run **coding agents** for implementation and **ephemeral reviewer agents** for scoped `P0`-`P3` validation.
 
 - Coding agent owns one implementation stream.
+- Use `reviewer_check` as the routine per-task and per-stream consistency gate before advancing to the next task or dependency wave.
 - Reviewer agent is fresh each cycle and reports prioritized findings.
 - Close reviewer agent after each review result.
 - Triage reviewer findings against the active tasks, spec, contracts, and what the stream changed.
@@ -72,12 +73,16 @@ Run **coding agents** for implementation and **ephemeral reviewer agents** for s
 - Use supervisor judgment only for non-introduced findings that may or may not need fixing now.
 - After any fix round triggered by reviewer findings, require a fresh reviewer pass on the updated stream before concluding it.
 - Conclude a stream only after every introduced defect is handled, any other must-fix-now findings are handled, a fresh post-fix reviewer pass has checked the latest patch set, and required validation is complete.
+- If a concurrent coder change makes an active review snapshot stale, interrupt the reviewer and ask it to stop and report only findings or investigation conclusions already established against the old snapshot before closing it. Record that output as historical evidence; never use it in place of the required fresh post-change review.
 - If you use the hook bundle, keep the pending review-loop state accurate so the stop gate reflects which streams still need fresh reviewer closure.
 
 Default worker selection:
 
 - Prefer `coder_spec` for normal task-owned Spec-Kit implementation streams.
 - The harness supports per-spawn `model` and `reasoning_effort` overrides, prefer keeping the domain role aligned to the task and overriding those controls directly instead of generic coder presets such as `coder` or `coder_xhigh`, unless explicitly needed where work is not spec-based or out-of-spec.
+- Prefer `reviewer_check` for routine task and stream gates.
+- Use the default `reviewer` for larger gates within the spec-task checklist, including dependency-wave boundaries, milestones spanning several related tasks, high-risk or cross-cutting tasks, ambiguous behavior, and streams that have already needed a non-trivial fix cycle.
+- Do not use `reviewer_exhaustive` unless the user explicitly requests an exhaustive review.
 
 ## Non-Negotiable Guardrails
 
@@ -107,13 +112,14 @@ Default worker selection:
    - Iterate coder-to-reviewer while the latest reviewer pass still surfaces findings the supervisor judges must be fixed now in that stream.
    - When sending review feedback back to the coder, include the exact reviewer finding or a structured restatement with `P` level, `file:line`, scenario, required invariant, and focused validation to rerun.
    - Every time the coder changes the stream to address reviewer findings, rerun a fresh reviewer on the updated patch set before treating the stream as complete.
+   - When a concurrent coder invalidates an active review, interrupt that reviewer first and collect only its already-established findings as explicitly historical evidence; then close it and spawn a fresh reviewer on the updated patch.
 3. **Parallel Waves**
    - Spawn multiple coding agents for independent streams with disjoint ownership.
    - Run a separate ephemeral review loop for each stream.
    - Do not let overlapping streams edit the same hot files unless intentionally serialized.
 4. **Cross-Stream Final Pass**
-   - Spawn one final reviewer over all completed streams.
-   - When you want extra recall without weakening the normal loop, run the default `reviewer` and `reviewer_exhaustive` in parallel for this final pass.
+   - Spawn the default `reviewer` over all completed streams.
+   - Do not add `reviewer_exhaustive` unless the user explicitly requests an exhaustive review.
    - If blockers appear, route them to the smallest responsible stream and rerun review.
    - Explicitly include deployability checks such as schema/DAO parity, migration presence, and payload contract parity.
 5. **Validation**
@@ -144,7 +150,8 @@ Include:
 
 Include:
 
-- `agent_type`: `reviewer`
+- `agent_type`: `reviewer_check` for routine task and stream gates
+- use `reviewer` instead for larger checklist gates, dependency-wave or multi-task milestones, high-risk or cross-cutting tasks, ambiguous behavior, or streams that have already needed a non-trivial fix cycle
 - no-context fork option for the active schema: `fork_context=false` for multi-agent V1 or `fork_turns="none"` for V2
 - exact scope files
 - exact task IDs under review
@@ -153,12 +160,12 @@ Include:
 - `focus on the active task slice, but still report any bug, regression, or contract gap introduced by the stream in the touched scope even when it extends beyond the original task IDs`
 - `do not pull in unrelated deferred tasks/specs`
 
-### Optional Exhaustive Reviewer Agent
+### User-Requested Exhaustive Reviewer Agent
 
 Include:
 
 - `agent_type`: `reviewer_exhaustive`
-- use it only for optional final or cross-stream sweeps where extra recall is worth the cost
+- use it only when the user explicitly requests an exhaustive review
 - keep the same scope files and ownership boundaries as the normal reviewer
 
 ## Example RPC Flow
@@ -194,7 +201,7 @@ wait_agent({
 })
 
 spawn_agent({
-  agent_type: "reviewer",
+  agent_type: "reviewer_check",
   # Multi-agent V1: use fork_context: false.
   # Multi-agent V2: replace it with fork_turns: "none".
   fork_context: false,

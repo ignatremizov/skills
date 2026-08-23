@@ -18,6 +18,10 @@ It is for turning a mostly-working change into a review-hardened change by:
 
 If the user requests, you can pair this loop with the `supervisor-hardening` Codex hook set. Use `$codex-hooks` to manage it, and read [references/hook-setup.md](references/hook-setup.md) before installing or updating supervisor session state. Do not load that reference when hooks are not in use.
 
+## Tool-Assisted Analysis
+
+For Go changes that may contain duplicated logic, dead helpers, interface drift, unclear call ownership, resource leaks, or query-contract drift, read [references/semantic-code-analysis.md](references/semantic-code-analysis.md). Use its checks as scoped review scouts, validate every result against the actual contract, and report which ad-hoc checks ran separately from repository-default lint.
+
 ## When to Use
 
 - Main coder work is complete enough that the remaining work is hardening, not feature design.
@@ -66,6 +70,7 @@ After the blind-spot and any triggered adversarial reviewer are closed, run one 
 - Make the handoff explicit about which findings are must-close now, which hardening area owns them, and what focused tests or invariants the coder must check before the next review pass.
 - After any fix round triggered by reviewer findings, rerun a fresh reviewer on the updated stream before advancing it.
 - Conclude a hardening stream only after its findings are closed for that stream, a fresh post-fix reviewer pass has checked the latest patch set, and the selected hardening objective is met.
+- If a concurrent coder change makes an active review snapshot stale, interrupt the reviewer and ask it to stop and report only findings or investigation conclusions already established against the old snapshot before closing it. Record that output as historical evidence; never use it in place of the required fresh post-change review.
 - Run the blind-spot reviewer only after the selected area-specific streams are closed, and before `quality-gate-hardening`.
 - Route blind-spot findings into the smallest owning hardening stream or record-and-defer them under the same must-close-now policy used for area-specific reviewer findings.
 - If a blind-spot finding causes a patch change, rerun a fresh blind-spot reviewer on the updated patch before quality gate.
@@ -344,6 +349,7 @@ Use the base `reviewer` profile, but add one or more area-specific instructions.
    - Read the user request, changed files, and any available report/checklist inputs.
    - Classify the change into one or more hardening areas.
    - Run an abstraction-review gate for any change that lands in an optimization, cached fast path, duplicate helper, or special-case branch.
+   - When that gate needs tool-assisted semantic or duplication analysis, use the semantic-code-analysis reference and keep heuristic findings non-gating until validated.
    - Build a minimal wave plan.
 
 2. **Wave Planning**
@@ -368,6 +374,7 @@ Use the base `reviewer` profile, but add one or more area-specific instructions.
    - If a finding is lower-priority maintainability or cleanup work outside the current hardening objective, record it for later follow-up instead of recursively expanding the hardening loop.
    - When sending review feedback back to a coder, include the exact reviewer finding or a structured restatement with `P` level, `file:line`, scenario, owning hardening area, and focused validation to rerun.
    - Every time a hardening coder changes the stream to address reviewer findings, rerun a fresh reviewer on the updated patch set before advancing that stream.
+   - When a concurrent coder invalidates an active review, interrupt that reviewer first and collect only its already-established findings as explicitly historical evidence; then close it and spawn a fresh reviewer on the updated patch.
    - Close reviewer after each verdict.
 
 4. **Blind-Spot Sweep**
