@@ -1,6 +1,7 @@
 model = "gpt-5.3-codex-spark"
 model_instructions_file = "instructions/base-micro-upstream.md"
 model_reasoning_effort = "low"
+model_reasoning_summary = "none"
 background_terminal_max_timeout = 3600000
 name = "awaiter"
 description = "Awaiter preset for long-running command monitoring"

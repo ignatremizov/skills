@@ -1,6 +1,7 @@
 model = "gpt-5.3-codex-spark"
 model_instructions_file = "instructions/base-fast-upstream.md"
 model_reasoning_effort = "high"
+model_reasoning_summary = "none"
 model_verbosity = "high"
 name = "audit_scout_spark"
 description = "Fast producer for narrow-shard defect discovery"

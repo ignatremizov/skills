@@ -1,6 +1,7 @@
 model = "gpt-5.3-codex-spark"
 model_instructions_file = "instructions/base-frontier-upstream.md"
 model_reasoning_effort = "high"
+model_reasoning_summary = "none"
 name = "coder_spark"
 description = "Coder preset: extra-high rigor profile using spark runtime"
 
