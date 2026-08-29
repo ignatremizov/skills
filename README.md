@@ -89,14 +89,14 @@ Example profile files:
 - `openai/gpt-5.5/reporting.md`
 - `openai/gpt-5.5/upstream.md` as the upstream baseline snapshot
 - `openai/gpt-5.6/code.md`, `writing.md`, `research.md`, and `reporting.md` as normalized GPT-5.6 scope profiles
-- `openai/gpt-5.6/models-upstream.json` as the exact upstream model-catalog snapshot from `openai/codex@321d166`
+- `openai/gpt-5.6/models-upstream.json` as the exact upstream model-catalog snapshot from `openai/codex@5bcd7b0`
 - `openai/gpt-5.6/sol-terra-upstream.md` and `openai/gpt-5.6/luna-upstream.md` as extracted upstream GPT-5.6 base-instruction snapshots
 
 ### Model catalog overrides
 
-`openai/gpt-5.6/models-config-controlled.json` is rebuilt from `models-upstream.json` and layers only the deliberate local controls. It retains the GPT-5.3 Codex and Spark fallback entries, keeps the GPT-5.6 default context window at 372K while advertising an 872K maximum, and clears `tool_mode` and `multi_agent_version` selectors so Codex falls back to local feature config for Code Mode and v1/v2 selection instead of model metadata forcing either mode.
+`openai/gpt-5.6/models-config-controlled.json` is rebuilt from `models-upstream.json` and layers only the deliberate local controls. It carries current upstream runtime metadata, including unified exec, app/plugin and Node REPL capabilities, service tiers, and hidden Daybreak definitions. It retains the GPT-5.3 Codex and Spark fallback entries, keeps retired GPT-5.4 models visible, preserves the visible `gpt-daybreak-blue` defender alias without cyber-specialty client restrictions, keeps the GPT-5.6 default context window at 372K while advertising an 872K maximum, and clears `tool_mode` and `multi_agent_version` selectors so Codex falls back to local feature config for Code Mode and v1/v2 selection instead of model metadata forcing either mode.
 
-For all GPT-5.6 variants, the controlled catalog also clarifies that coherent shell operations may be combined. For Sol and Terra, it narrows the upstream environment guidance to protect user-set state without discouraging legitimate user-scoped paths. The human-maintained profiles use the same shell guidance, and `code.md` uses the same environment wording.
+For all GPT-5.6 variants, the controlled catalog also clarifies that coherent shell operations may be combined. Its shell guidance records that zsh's `path` array is tied to `PATH`, so task variables must use another name. For Sol and Terra, it narrows the upstream environment guidance to protect user-set state without discouraging legitimate user-scoped paths. The human-maintained profiles use the same shell guidance, and `code.md` uses the same environment wording.
 
 The controlled catalog replaces the upstream 60-second wait warning with guidance to prefer long, interruptible waits and task-appropriate timeouts. It also makes commentary updates milestone-based instead of imposing a fixed wall-clock cadence. Unified command monitoring remains responsive to user input during a wait, so frequent short polling adds tool churn without improving collaboration.
 
